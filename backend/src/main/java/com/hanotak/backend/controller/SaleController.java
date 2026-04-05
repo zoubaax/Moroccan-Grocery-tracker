@@ -46,7 +46,16 @@ public class SaleController {
         }
 
         BigDecimal totalAmount = BigDecimal.ZERO;
-        Sale sale = new Sale(BigDecimal.ZERO, saleRequest.getPaymentMethod(), shopOwner);
+        User client = null;
+        if (saleRequest.getCustomerId() != null) {
+            client = userRepository.findById(saleRequest.getCustomerId()).orElse(null);
+        }
+
+        if ("CREDIT".equals(saleRequest.getPaymentMethod()) && client == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Credit sales require a valid customer account."));
+        }
+
+        Sale sale = new Sale(BigDecimal.ZERO, saleRequest.getPaymentMethod(), shopOwner, client);
 
         for (SaleRequest.SaleItemRequest itemReq : saleRequest.getItems()) {
             Product product = productRepository.findByBarcode(itemReq.getBarcode()).orElse(null);
@@ -71,6 +80,11 @@ public class SaleController {
 
         sale.setTotalAmount(totalAmount);
         saleRepository.save(sale);
+
+        if ("CREDIT".equals(saleRequest.getPaymentMethod()) && client != null) {
+            client.setCurrentBalance(client.getCurrentBalance().add(totalAmount));
+            userRepository.save(client);
+        }
 
         return ResponseEntity.ok(new MessageResponse("Sale processed successfully. Total: " + totalAmount + " DH"));
     }

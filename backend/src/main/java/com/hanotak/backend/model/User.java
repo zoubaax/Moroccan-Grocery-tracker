@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "users", 
@@ -34,6 +35,9 @@ public class User {
   @JoinColumn(name = "role_id")
   private Role role;
 
+  @Column(nullable = false, columnDefinition = "DECIMAL(38,2) DEFAULT 0")
+  private BigDecimal currentBalance = BigDecimal.ZERO;
+
   public User() {}
 
   public User(String name, String email, String password, String phone) {
@@ -55,4 +59,6 @@ public class User {
   public void setPassword(String password) { this.password = password; }
   public Role getRole() { return role; }
   public void setRole(Role role) { this.role = role; }
+  public BigDecimal getCurrentBalance() { return currentBalance; }
+  public void setCurrentBalance(BigDecimal currentBalance) { this.currentBalance = currentBalance; }
 }

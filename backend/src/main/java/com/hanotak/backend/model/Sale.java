@@ -31,13 +31,18 @@ public class Sale {
     @JsonIgnore
     private User shopOwner; // The Moul7anout who made the sale
 
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private User client; // The customer who made the purchase (optional for cash sales)
+
     public Sale() {}
 
-    public Sale(BigDecimal totalAmount, String paymentMethod, User shopOwner) {
+    public Sale(BigDecimal totalAmount, String paymentMethod, User shopOwner, User client) {
         this.transactionDate = LocalDateTime.now();
         this.totalAmount = totalAmount;
         this.paymentMethod = paymentMethod;
         this.shopOwner = shopOwner;
+        this.client = client;
     }
 
     // Getters and Setters

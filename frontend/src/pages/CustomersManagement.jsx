@@ -155,15 +155,15 @@ const CustomersManagement = () => {
         })
         .sort((a, b) => {
             if (sortBy === 'name') return a.name.localeCompare(b.name);
-            if (sortBy === 'credit') return (b.creditBalance || 0) - (a.creditBalance || 0);
+            if (sortBy === 'credit') return (b.currentBalance || 0) - (a.currentBalance || 0);
             return 0;
         });
 
     const stats = {
         total: customers.length,
         active: customers.filter(c => c.active !== false).length,
-        withCredit: customers.filter(c => (c.creditBalance || 0) > 0).length,
-        totalCredit: customers.reduce((sum, c) => sum + (c.creditBalance || 0), 0)
+        withCredit: customers.filter(c => (c.currentBalance || 0) > 0).length,
+        totalCredit: customers.reduce((sum, c) => sum + (c.currentBalance || 0), 0)
     };
 
     return (
@@ -362,7 +362,7 @@ const CustomersManagement = () => {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-xl font-bold text-gray-900">
-                                                {(customer.creditBalance || 0).toLocaleString()} DH
+                                                {(customer.currentBalance || 0).toLocaleString()} DH
                                             </span>
                                             <span className="text-sm text-gray-600">
                                                 {(customer.creditLimit || 5000).toLocaleString()} DH
@@ -371,7 +371,7 @@ const CustomersManagement = () => {
                                         <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
                                             <div 
                                                 className="bg-indigo-600 h-1.5 rounded-full transition-all"
-                                                style={{ width: `${Math.min(((customer.creditBalance || 0) / (customer.creditLimit || 5000)) * 100, 100)}%` }}
+                                                style={{ width: `${Math.min(((customer.currentBalance || 0) / (customer.creditLimit || 5000)) * 100, 100)}%` }}
                                             />
                                         </div>
                                     </div>

@@ -10,6 +10,8 @@ import com.hanotak.backend.model.User;
 import com.hanotak.backend.repository.UserRepository;
 import com.hanotak.backend.security.services.UserDetailsImpl;
 import com.hanotak.backend.dto.MessageResponse;
+import java.math.BigDecimal;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -32,6 +34,26 @@ public class UserController {
   @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
   public List<User> getClients() {
     return userService.getClients();
+  }
+
+  @GetMapping("/phone/{phone}")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
+  public ResponseEntity<?> getClientByPhone(@PathVariable String phone) {
+      return userService.getUserByPhone(phone)
+          .map(ResponseEntity::ok)
+          .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping("/{id}/pay-credit")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
+  public ResponseEntity<?> payCredit(@PathVariable Long id, @RequestBody BigDecimal amount) {
+      User user = userService.getUserById(id)
+          .orElseThrow(() -> new RuntimeException("User not found"));
+      
+      user.setCurrentBalance(user.getCurrentBalance().subtract(amount));
+      userService.saveUser(user);
+      
+      return ResponseEntity.ok(new MessageResponse("Payment of " + amount + " DH received. New balance: " + user.getCurrentBalance() + " DH"));
   }
 
   @GetMapping

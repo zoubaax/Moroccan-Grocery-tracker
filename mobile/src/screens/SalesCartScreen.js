@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
-import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft } from 'lucide-react-native';
+import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft, Smartphone, Users } from 'lucide-react-native';
 import axios from 'axios';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBack }) => {
+const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBack, selectedCustomer }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('CASH');
+    const [paymentMethod, setPaymentMethod] = useState(selectedCustomer ? 'CREDIT' : 'CASH');
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -31,7 +31,8 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
         try {
             const saleData = {
                 paymentMethod,
-                items: cart.map(item => ({ barcode: item.barcode, quantity: item.quantity }))
+                items: cart.map(item => ({ barcode: item.barcode, quantity: item.quantity })),
+                customerId: selectedCustomer?.id
             };
             
             await axios.post(`${API_URL}/sales/process`, saleData, {
@@ -113,6 +114,15 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
                         <CreditCard size={20} color={paymentMethod === 'CARD' ? '#fff' : '#94a3b8'} />
                         <Text style={[styles.payText, paymentMethod === 'CARD' && styles.payTextActive]}>CARTE</Text>
                     </TouchableOpacity>
+                    {selectedCustomer && (
+                        <TouchableOpacity 
+                            onPress={() => setPaymentMethod('CREDIT')}
+                            style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive]}
+                        >
+                            <Users size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#94a3b8'} />
+                            <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>CREDIT</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 <View style={styles.totalRow}>
@@ -160,6 +170,7 @@ const styles = StyleSheet.create({
     paymentSection: { flexDirection: 'row', gap: 10, marginBottom: 20 },
     payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: '#f1f5f9' },
     payBtnActive: { backgroundColor: '#4f46e5' },
+    payBtnCreditActive: { backgroundColor: '#ef4444' },
     payText: { fontSize: 12, fontWeight: 'bold', color: '#64748b' },
     payTextActive: { color: '#fff' },
     checkoutBtn: { height: 60, backgroundColor: '#1e293b', borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },

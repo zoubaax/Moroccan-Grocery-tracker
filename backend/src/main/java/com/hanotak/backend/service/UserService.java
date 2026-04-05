@@ -36,4 +36,8 @@ public class UserService {
   public boolean existsByEmail(String email) {
     return userRepository.existsByEmail(email);
   }
+
+  public Optional<User> getUserByPhone(String phone) {
+    return userRepository.findByPhone(phone);
+  }
 }

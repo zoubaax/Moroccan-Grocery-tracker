@@ -377,35 +377,58 @@ const SalesTerminal = () => {
 
                         {/* Payment Method */}
                         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <CreditCard size={18} className="text-gray-400" />
-                                <h3 className="font-semibold text-gray-900">Payment Method</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <CreditCard size={18} className="text-gray-400" />
+                                    <h3 className="font-semibold text-gray-900">Payment Method</h3>
+                                </div>
+                                {customerInfo && (
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Client Debt</p>
+                                        <p className="text-sm font-black text-rose-600">{customerInfo.currentBalance?.toFixed(2) || '0.00'} DH</p>
+                                    </div>
+                                )}
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 <button 
                                     onClick={() => setPaymentMethod('CASH')}
-                                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                                         paymentMethod === 'CASH' 
                                             ? 'border-indigo-600 bg-indigo-50 text-indigo-600' 
-                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                                            : 'border-gray-100 text-gray-500 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <Banknote size={18} />
-                                    <span className="font-medium text-sm">Cash</span>
+                                    <Banknote size={20} />
+                                    <span className="font-bold text-[10px] uppercase tracking-widest">Cash</span>
                                 </button>
                                 <button 
                                     onClick={() => setPaymentMethod('CARD')}
-                                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                                         paymentMethod === 'CARD' 
                                             ? 'border-indigo-600 bg-indigo-50 text-indigo-600' 
-                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                                            : 'border-gray-100 text-gray-500 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <CreditCard size={18} />
-                                    <span className="font-medium text-sm">Card</span>
+                                    <CreditCard size={20} />
+                                    <span className="font-bold text-[10px] uppercase tracking-widest">Card</span>
+                                </button>
+                                <button 
+                                    onClick={() => setPaymentMethod('CREDIT')}
+                                    disabled={!customerInfo}
+                                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                                        paymentMethod === 'CREDIT' 
+                                            ? 'border-rose-600 bg-rose-50 text-rose-600' 
+                                            : !customerInfo 
+                                                ? 'border-gray-50 bg-gray-50/50 text-gray-300 opacity-50 cursor-not-allowed'
+                                                : 'border-gray-100 text-gray-500 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <Smartphone size={20} />
+                                    <span className="font-bold text-[10px] uppercase tracking-widest">Credit</span>
                                 </button>
                             </div>
+                            {!customerInfo && paymentMethod === 'CREDIT' && setPaymentMethod('CASH')}
                         </div>
 
                         {/* Action Buttons */}
