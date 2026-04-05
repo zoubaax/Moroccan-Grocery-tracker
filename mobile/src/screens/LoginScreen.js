@@ -15,10 +15,11 @@ const LoginScreen = ({ navigation, onLogin }) => {
         setError('');
         try {
             const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-            if (response.data.role === 'ROLE_STAFF' || response.data.role === 'ROLE_ADMIN') {
+            const allowedRoles = ['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MOUL7ANOUT'];
+            if (allowedRoles.includes(response.data.role)) {
                 onLogin(response.data);
             } else {
-                setError('Accès réservé au Staff 7anoti.');
+                setError('Accès non autorisé pour ce rôle.');
             }
         } catch (err) {
             console.error("Login Result:", err.message);
@@ -37,14 +38,14 @@ const LoginScreen = ({ navigation, onLogin }) => {
             <View style={styles.content}>
                 <View style={styles.header}>
                     <Text style={styles.logo}>7anoti</Text>
-                    <Text style={styles.tagline}>STAFF MOBILE WAREHOUSE</Text>
+                    <Text style={styles.tagline}>7ANOTI MOBILE SUITE</Text>
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.label}>EMAIL STAFF</Text>
+                    <Text style={styles.label}>IDENTIFIANT (EMAIL/PHONE)</Text>
                     <TextInput 
                         style={styles.input} 
-                        placeholder="staff@7anoti.com" 
+                        placeholder="Email ou +212..." 
                         value={email} 
                         onChangeText={setEmail}
                         autoCapitalize="none"

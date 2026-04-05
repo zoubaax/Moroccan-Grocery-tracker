@@ -25,11 +25,19 @@ public class ProductController {
     @Autowired
     private CloudinaryService cloudinaryService;
 
-    @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
+  @GetMapping
+  @PreAuthorize("isAuthenticated()")
+  public List<Product> getAllProducts() {
+    return productRepository.findAll();
+  }
+
+  @GetMapping("/barcode/{barcode}")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<Product> getProductByBarcode(@PathVariable String barcode) {
+    return productRepository.findByBarcode(barcode)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")

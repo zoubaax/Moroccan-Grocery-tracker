@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Store,
   Menu,
-  X
+  X,
+  History
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -26,6 +27,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Users', path: '/users', icon: <Users size={20} />, roles: ['ROLE_ADMIN'] },
     { name: 'Customers', path: '/customers', icon: <Users size={20} />, roles: ['ROLE_MOUL7ANOUT'] },
     { name: 'Sales', path: '/sales', icon: <ShoppingBag size={20} />, roles: ['ROLE_ADMIN', 'ROLE_MOUL7ANOUT'] },
+    { name: 'Sale History', path: '/sales-history', icon: <History size={20} />, roles: ['ROLE_ADMIN', 'ROLE_MOUL7ANOUT'] },
     { name: 'Credits', path: '/credits', icon: <CreditCard size={20} />, roles: ['ROLE_ADMIN', 'ROLE_MOUL7ANOUT', 'ROLE_CLIENT'] },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} />, roles: ['ROLE_ADMIN', 'ROLE_MOUL7ANOUT', 'ROLE_STAFF'] },
   ];

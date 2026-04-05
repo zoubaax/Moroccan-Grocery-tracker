@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import UsersManagement from './pages/UsersManagement';
 import InventoryManagement from './pages/InventoryManagement';
 import CustomersManagement from './pages/CustomersManagement';
+import SalesTerminal from './pages/SalesTerminal';
+import SalesHistory from './pages/SalesHistory';
 
 function App() {
   return (
@@ -32,9 +34,11 @@ function App() {
             <Route path="/users" element={<UsersManagement />} />
           </Route>
 
-          {/* Moul7anout & Admin (Carnet) */}
+          {/* Moul7anout & Admin (Carnet & Sales) */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_MOUL7ANOUT']} />}>
             <Route path="/customers" element={<CustomersManagement />} />
+            <Route path="/sales" element={<SalesTerminal />} />
+            <Route path="/sales-history" element={<SalesHistory />} />
           </Route>
 
           {/* Fallback */}
