@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import UsersManagement from './pages/UsersManagement';
+import InventoryManagement from './pages/InventoryManagement';
 
 function App() {
   return (
@@ -14,11 +15,14 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           
-          {/* Protected Routes (Any Authenticated User) */}
+          {/* Basic Protected Routes (Any Authenticated User) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/staff" element={<Dashboard />} />
-            <Route path="/moul7anout" element={<Dashboard />} />
+          </Route>
+
+          {/* Inventory & Stock (Admin & Staff) */}
+          <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF']} />}>
+            <Route path="/inventory" element={<InventoryManagement />} />
           </Route>
 
           {/* Admin Only Routes */}
