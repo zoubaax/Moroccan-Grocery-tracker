@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import UsersManagement from './pages/UsersManagement';
 
 function App() {
   return (
@@ -24,13 +24,13 @@ function App() {
           {/* Admin Only Routes */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
             <Route path="/admin" element={<Dashboard />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/users" element={<UsersManagement />} />
           </Route>
 
           {/* Fallback */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/unauthorized" element={
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 italic text-slate-500">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 italic text-slate-500 font-bold">
                 Unauthorized access to this section.
             </div>
           } />
