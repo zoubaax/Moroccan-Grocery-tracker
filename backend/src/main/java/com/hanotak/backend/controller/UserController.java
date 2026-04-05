@@ -28,6 +28,12 @@ public class UserController {
     return ResponseEntity.ok(userDetails);
   }
 
+  @GetMapping("/clients")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
+  public List<User> getClients() {
+    return userService.getClients();
+  }
+
   @GetMapping
   @PreAuthorize("hasRole('ADMIN')")
   public List<User> getAllUsers() {

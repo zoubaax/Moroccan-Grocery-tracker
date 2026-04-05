@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.hanotak.backend.model.User;
+import com.hanotak.backend.model.ERole;
 import com.hanotak.backend.repository.UserRepository;
 
 @Service
@@ -14,6 +15,10 @@ public class UserService {
 
   public List<User> getAllUsers() {
     return userRepository.findAll();
+  }
+
+  public List<User> getClients() {
+    return userRepository.findByRoleName(ERole.ROLE_CLIENT);
   }
 
   public Optional<User> getUserById(Long id) {
