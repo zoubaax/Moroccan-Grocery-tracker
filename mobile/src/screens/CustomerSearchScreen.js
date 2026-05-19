@@ -1,31 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Platform, Keyboard } from 'react-native';
 import { Search, User, Phone, CheckCircle2, ChevronRight, ArrowLeft, UserPlus } from 'lucide-react-native';
 import axios from 'axios';
 
-const CustomerSearchScreen = ({ onSelect, onBack, token, apiUrl }) => {
+const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, mode }) => {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]);
+    const [allCustomers, setAllCustomers] = useState([]);
+    const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSearch = async (val) => {
-        setQuery(val);
-        if (val.length < 3) {
-            setResults([]);
-            return;
-        }
-
+    const fetchCustomers = async () => {
         setIsLoading(true);
         try {
-            // Search by phone or name (assuming backend supports it or filter clients)
             const response = await axios.get(`${apiUrl}/users/clients`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const filtered = response.data.filter(u => 
-                u.name.toLowerCase().includes(val.toLowerCase()) || 
-                (u.phone && u.phone.includes(val))
-            );
-            setResults(filtered);
+            // Sort by name
+            const sorted = response.data.sort((a, b) => a.name.localeCompare(b.name));
+            setAllCustomers(sorted);
+            setFilteredCustomers(sorted);
         } catch (err) {
             console.warn(err);
         } finally {
@@ -33,31 +26,55 @@ const CustomerSearchScreen = ({ onSelect, onBack, token, apiUrl }) => {
         }
     };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity 
-            style={styles.resultItem} 
-            onPress={() => {
-                Keyboard.dismiss();
-                onSelect(item);
-            }}
-        >
-            <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
-            </View>
-            <View style={styles.info}>
-                <Text style={styles.name}>{item.name}</Text>
-                <View style={styles.phoneRow}>
-                    <Phone size={12} color="#94a3b8" />
-                    <Text style={styles.phone}>{item.phone || 'Pas de numéro'}</Text>
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    const handleSearch = (val) => {
+        setQuery(val);
+        if (!val) {
+            setFilteredCustomers(allCustomers);
+            return;
+        }
+        const filtered = allCustomers.filter(u => 
+            u.name.toLowerCase().includes(val.toLowerCase()) || 
+            (u.phone && u.phone.includes(val))
+        );
+        setFilteredCustomers(filtered);
+    };
+
+    const renderItem = ({ item }) => {
+        const hasDebt = item.currentBalance > 0;
+        return (
+            <TouchableOpacity 
+                style={styles.resultItem} 
+                onPress={() => {
+                    Keyboard.dismiss();
+                    onSelect(item);
+                }}
+            >
+                <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
                 </View>
-            </View>
-            <View style={styles.balanceBox}>
-                <Text style={styles.balanceLabel}>DETTE</Text>
-                <Text style={styles.balanceValue}>{item.currentBalance?.toFixed(2) || '0.00'}</Text>
-            </View>
-            <ChevronRight color="#cbd5e1" size={20} />
-        </TouchableOpacity>
-    );
+                <View style={styles.info}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <View style={styles.phoneRow}>
+                        <Phone size={12} color="#94a3b8" />
+                        <Text style={styles.phone}>{item.phone || 'Pas de numéro'}</Text>
+                    </View>
+                </View>
+                <View style={[styles.balanceBox, hasDebt ? styles.balanceBoxRed : styles.balanceBoxGreen]}>
+                    <Text style={[styles.balanceLabel, hasDebt ? styles.balanceLabelRed : styles.balanceLabelGreen]}>
+                        {hasDebt ? 'DETTE' : 'SOLDE'}
+                    </Text>
+                    <Text style={[styles.balanceValue, hasDebt ? styles.balanceValueRed : styles.balanceValueGreen]}>
+                        {item.currentBalance?.toFixed(2) || '0.00'} DH
+                    </Text>
+                </View>
+                <ChevronRight color="#cbd5e1" size={20} />
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -65,8 +82,12 @@ const CustomerSearchScreen = ({ onSelect, onBack, token, apiUrl }) => {
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
                     <ArrowLeft color="#1e293b" size={24} />
                 </TouchableOpacity>
-                <Text style={styles.title}>CHOISIR LE CLIENT</Text>
-                <View style={{ width: 44 }} />
+                <Text style={styles.title}>
+                    {mode === 'select' ? "CHOISIR LE CLIENT" : "CARNET DE CREDIT"}
+                </Text>
+                <TouchableOpacity onPress={onAddCustomer} style={styles.addBtn}>
+                    <UserPlus color="#4f46e5" size={24} />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.searchContainer}>
@@ -77,31 +98,29 @@ const CustomerSearchScreen = ({ onSelect, onBack, token, apiUrl }) => {
                     placeholderTextColor="#94a3b8"
                     value={query}
                     onChangeText={handleSearch}
-                    autoFocus
                 />
                 {isLoading && <ActivityIndicator style={styles.loader} color="#4f46e5" />}
             </View>
 
             <FlatList 
-                data={results}
+                data={filteredCustomers}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
-                ListHeaderComponent={() => query.length >= 3 && results.length > 0 ? (
-                    <Text style={styles.listHeader}>RESULTATS TROUVÉS ({results.length})</Text>
+                refreshing={isLoading}
+                onRefresh={fetchCustomers}
+                ListHeaderComponent={() => query.length > 0 && filteredCustomers.length > 0 ? (
+                    <Text style={styles.listHeader}>RÉSULTATS TROUVÉS ({filteredCustomers.length})</Text>
                 ) : null}
                 ListEmptyComponent={() => (
                     <View style={styles.empty}>
-                        {query.length < 3 ? (
-                            <>
-                                <Search size={48} color="#f1f5f9" />
-                                <Text style={styles.emptyText}>Tapez au moins 3 caractères</Text>
-                            </>
+                        {isLoading ? (
+                            <ActivityIndicator size="large" color="#4f46e5" />
                         ) : (
                             <>
                                 <UserPlus size={48} color="#f1f5f9" />
                                 <Text style={styles.emptyText}>Aucun client trouvé</Text>
-                                <Text style={styles.emptySub}>Vérifiez l'orthographe ou le numéro</Text>
+                                <Text style={styles.emptySub}>Ajoutez-en un en cliquant sur le bouton +</Text>
                             </>
                         )}
                     </View>
@@ -115,6 +134,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, height: 60, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
     backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     title: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', letterSpacing: 1 },
     searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', margin: 15, borderRadius: 15, paddingHorizontal: 15, height: 50, borderWidth: 1, borderColor: '#f1f5f9' },
     searchIcon: { marginRight: 10 },
@@ -129,9 +149,15 @@ const styles = StyleSheet.create({
     name: { fontSize: 16, fontWeight: 'bold', color: '#1e293b', marginBottom: 4 },
     phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     phone: { fontSize: 13, color: '#64748b' },
-    balanceBox: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: '#fef2f2', alignItems: 'center', marginRight: 10 },
-    balanceLabel: { fontSize: 8, fontWeight: 'black', color: '#ef4444', marginBottom: 2 },
-    balanceValue: { fontSize: 14, fontWeight: 'bold', color: '#b91c1c' },
+    balanceBox: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center', marginRight: 10, minWidth: 90 },
+    balanceBoxRed: { backgroundColor: '#fef2f2' },
+    balanceBoxGreen: { backgroundColor: '#f0fdf4' },
+    balanceLabel: { fontSize: 8, fontWeight: 'black', marginBottom: 2 },
+    balanceLabelRed: { color: '#ef4444' },
+    balanceLabelGreen: { color: '#22c55e' },
+    balanceValue: { fontSize: 13, fontWeight: 'bold' },
+    balanceValueRed: { color: '#b91c1c' },
+    balanceValueGreen: { color: '#15803d' },
     empty: { marginTop: 100, alignItems: 'center' },
     emptyText: { marginTop: 20, fontSize: 16, fontWeight: 'bold', color: '#94a3b8' },
     emptySub: { marginTop: 5, fontSize: 13, color: '#cbd5e1' }

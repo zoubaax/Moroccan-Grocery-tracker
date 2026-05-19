@@ -58,6 +58,8 @@ public class Sale {
     public void setItems(List<SaleItem> items) { this.items = items; }
     public User getShopOwner() { return shopOwner; }
     public void setShopOwner(User shopOwner) { this.shopOwner = shopOwner; }
+    public User getClient() { return client; }
+    public void setClient(User client) { this.client = client; }
 
     public void addItem(SaleItem item) {
         items.add(item);

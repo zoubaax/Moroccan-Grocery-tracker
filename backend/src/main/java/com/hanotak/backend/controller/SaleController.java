@@ -95,4 +95,14 @@ public class SaleController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return saleRepository.findByShopOwnerId(userDetails.getId());
     }
+
+    @GetMapping("/client/{clientId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
+    public ResponseEntity<?> getClientSales(@PathVariable Long clientId) {
+        if (!userRepository.existsById(clientId)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Client not found"));
+        }
+        List<Sale> sales = saleRepository.findByClientIdOrderByTransactionDateDesc(clientId);
+        return ResponseEntity.ok(sales);
+    }
 }

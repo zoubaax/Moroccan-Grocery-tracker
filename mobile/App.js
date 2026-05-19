@@ -6,6 +6,9 @@ import ProductForm from './src/screens/ProductForm';
 import SalesCartScreen from './src/screens/SalesCartScreen';
 import PortalScreen from './src/screens/PortalScreen';
 import CustomerSearchScreen from './src/screens/CustomerSearchScreen';
+import CustomerCreateScreen from './src/screens/CustomerCreateScreen';
+import CustomerDetailScreen from './src/screens/CustomerDetailScreen';
+import SalesReportScreen from './src/screens/SalesReportScreen';
 import * as SplashScreen from 'expo-splash-screen';
 import { ArrowLeft, ShoppingCart, Power, User } from 'lucide-react-native';
 import axios from 'axios';
@@ -24,6 +27,7 @@ export default function App() {
   const [salesCart, setSalesCart] = useState([]);
   const [lastAddedProduct, setLastAddedProduct] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedCustomerProfile, setSelectedCustomerProfile] = useState(null);
   const [saleMode, setSaleMode] = useState('NORMAL'); // 'NORMAL' or 'CREDIT'
   
   const [appIsReady, setAppIsReady] = useState(false);
@@ -62,6 +66,8 @@ export default function App() {
       setSaleMode(mode);
       if (mode === 'CREDIT') {
           setCurrentScreen('customer_search');
+      } else if (mode === 'STATS') {
+          setCurrentScreen('sales_report');
       } else {
           setSelectedCustomer(null);
           setCurrentScreen('scanner');
@@ -69,8 +75,13 @@ export default function App() {
   };
 
   const handleCustomerSelect = (customer) => {
-      setSelectedCustomer(customer);
-      setCurrentScreen('scanner');
+      if (saleMode === 'CREDIT') {
+          setSelectedCustomerProfile(customer);
+          setCurrentScreen('customer_detail');
+      } else {
+          setSelectedCustomer(customer);
+          setCurrentScreen('cart');
+      }
   };
 
   const handleScan = async (barcode) => {
@@ -105,7 +116,11 @@ export default function App() {
     setSalesCart([]);
     setSelectedCustomer(null);
     setSaleMode('NORMAL');
-    setCurrentScreen('portal');
+    if (user?.role === 'ROLE_MOUL7ANOUT') {
+        setCurrentScreen('portal');
+    } else {
+        setCurrentScreen('scanner');
+    }
   };
 
   const renderHeader = (title, onBack) => (
@@ -138,7 +153,41 @@ export default function App() {
           <CustomerSearchScreen 
             token={user?.token}
             apiUrl={API_URL}
+            mode={saleMode === 'CREDIT' ? 'manage' : 'select'}
             onSelect={handleCustomerSelect}
+            onAddCustomer={() => setCurrentScreen('customer_create')}
+            onBack={() => {
+                if (saleMode === 'CREDIT') {
+                    setCurrentScreen('portal');
+                } else {
+                    setCurrentScreen('cart');
+                }
+            }}
+          />
+      )}
+
+      {currentScreen === 'customer_create' && (
+          <CustomerCreateScreen 
+            token={user?.token}
+            apiUrl={API_URL}
+            onBack={() => setCurrentScreen('customer_search')}
+            onSuccess={() => setCurrentScreen('customer_search')}
+          />
+      )}
+
+      {currentScreen === 'customer_detail' && (
+          <CustomerDetailScreen 
+            customer={selectedCustomerProfile}
+            token={user?.token}
+            apiUrl={API_URL}
+            onBack={() => setCurrentScreen('customer_search')}
+          />
+      )}
+
+      {currentScreen === 'sales_report' && (
+          <SalesReportScreen 
+            token={user?.token}
+            apiUrl={API_URL}
             onBack={() => setCurrentScreen('portal')}
           />
       )}
@@ -198,6 +247,10 @@ export default function App() {
             onClear={() => setSalesCart([])}
             onComplete={handleComplete}
             onBack={() => setCurrentScreen('scanner')}
+            onChooseCustomer={() => {
+                setSaleMode('NORMAL');
+                setCurrentScreen('customer_search');
+            }}
         />
       )}
     </View>

@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Image } from 'react-native';
 import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft, Smartphone, Users } from 'lucide-react-native';
 import axios from 'axios';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBack, selectedCustomer }) => {
+const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBack, selectedCustomer, onChooseCustomer }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState(selectedCustomer ? 'CREDIT' : 'CASH');
+
+    useEffect(() => {
+        if (selectedCustomer) {
+            setPaymentMethod('CREDIT');
+        }
+    }, [selectedCustomer]);
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -51,8 +57,15 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
 
     const renderItem = ({ item }) => (
         <View style={styles.itemCard}>
+            {item.imageUrl ? (
+                <Image source={{ uri: item.imageUrl }} style={styles.productThumb} />
+            ) : (
+                <View style={styles.productThumbPlaceholder}>
+                    <ShoppingBag size={20} color="#94a3b8" />
+                </View>
+            )}
             <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
                 <Text style={styles.itemBarcode}>{item.barcode}</Text>
                 <Text style={styles.itemPrice}>{item.price} DH</Text>
             </View>
@@ -99,6 +112,18 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
             />
 
             <View style={styles.footer}>
+                {selectedCustomer && (
+                    <View style={styles.customerCartBanner}>
+                        <View style={styles.customerCartBannerInfo}>
+                            <Users size={16} color="#4f46e5" />
+                            <Text style={styles.customerCartBannerText}>Client: {selectedCustomer.name}</Text>
+                        </View>
+                        <TouchableOpacity onPress={onChooseCustomer} style={styles.changeCustomerBtn}>
+                            <Text style={styles.changeCustomerText}>Changer</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
                 <View style={styles.paymentSection}>
                     <TouchableOpacity 
                         onPress={() => setPaymentMethod('CASH')}
@@ -114,15 +139,19 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
                         <CreditCard size={20} color={paymentMethod === 'CARD' ? '#fff' : '#94a3b8'} />
                         <Text style={[styles.payText, paymentMethod === 'CARD' && styles.payTextActive]}>CARTE</Text>
                     </TouchableOpacity>
-                    {selectedCustomer && (
-                        <TouchableOpacity 
-                            onPress={() => setPaymentMethod('CREDIT')}
-                            style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive]}
-                        >
-                            <Users size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#94a3b8'} />
-                            <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>CREDIT</Text>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity 
+                        onPress={() => {
+                            if (!selectedCustomer) {
+                                onChooseCustomer();
+                            } else {
+                                setPaymentMethod('CREDIT');
+                            }
+                        }}
+                        style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive]}
+                    >
+                        <Users size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#94a3b8'} />
+                        <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>CREDIT</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.totalRow}>
@@ -157,6 +186,9 @@ const styles = StyleSheet.create({
     itemName: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
     itemBarcode: { fontSize: 10, color: '#94a3b8', fontWeight: 'bold', marginTop: 2 },
     itemPrice: { fontSize: 14, fontWeight: 'bold', color: '#4f46e5', marginTop: 5 },
+    itemInfo: { flex: 1, marginLeft: 12, marginRight: 10 },
+    productThumb: { width: 55, height: 55, borderRadius: 12, backgroundColor: '#f8fafc' },
+    productThumbPlaceholder: { width: 55, height: 55, borderRadius: 12, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center' },
     itemActions: { alignItems: 'flex-end', gap: 10 },
     qtyControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 10, padding: 4 },
     qtyBtn: { padding: 5 },
@@ -175,7 +207,12 @@ const styles = StyleSheet.create({
     payTextActive: { color: '#fff' },
     checkoutBtn: { height: 60, backgroundColor: '#1e293b', borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
     checkoutText: { color: '#fff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5 },
-    disabled: { opacity: 0.5 }
+    disabled: { opacity: 0.5 },
+    customerCartBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f0f2ff', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 12, marginBottom: 15 },
+    customerCartBannerInfo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    customerCartBannerText: { fontSize: 13, fontWeight: 'bold', color: '#4f46e5' },
+    changeCustomerBtn: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e7ff' },
+    changeCustomerText: { fontSize: 11, fontWeight: 'bold', color: '#4f46e5' }
 });
 
 export default SalesCartScreen;

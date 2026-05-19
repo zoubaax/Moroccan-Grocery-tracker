@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface SaleRepository extends JpaRepository<Sale, Long> {
     List<Sale> findByShopOwnerId(Long shopOwnerId);
+    List<Sale> findByClientIdOrderByTransactionDateDesc(Long clientId);
 }
