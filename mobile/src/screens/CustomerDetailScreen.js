@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Keyboard, Image } from 'react-native';
-import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt } from 'lucide-react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Keyboard, Image, Linking } from 'react-native';
+import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt, Share2 } from 'lucide-react-native';
 import axios from 'axios';
 
 const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
@@ -37,6 +37,36 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     useEffect(() => {
         fetchHistoryAndDetails();
     }, []);
+
+    const handleShareCredentials = async () => {
+        if (!currentCustomer.phone) {
+            Alert.alert("Erreur", "Ce client n'a pas de numéro de téléphone enregistré.");
+            return;
+        }
+
+        let formattedPhone = currentCustomer.phone.trim();
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = '212' + formattedPhone.substring(1);
+        } else if (formattedPhone.startsWith('+')) {
+            formattedPhone = formattedPhone.substring(1);
+        }
+
+        const message = `Salam ${currentCustomer.name} 👋\n\nVoici tes identifiants pour te connecter à l'application *7anoti* et suivre tes crédits et tes achats :\n\n📱 *Identifiant* : ${currentCustomer.phone.trim()}\n🔑 *Mot de passe* : client123`;
+        const encodedMsg = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMsg}`;
+
+        try {
+            const supported = await Linking.canOpenURL(whatsappUrl);
+            if (supported) {
+                await Linking.openURL(whatsappUrl);
+            } else {
+                Alert.alert("Erreur", "WhatsApp n'est pas installé sur cet appareil.");
+            }
+        } catch (err) {
+            console.error("Error opening WhatsApp:", err);
+            Alert.alert("Erreur", "Impossible d'ouvrir WhatsApp.");
+        }
+    };
 
     const handlePayment = async () => {
         const amount = parseFloat(paymentAmount);
@@ -156,6 +186,16 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                         {currentCustomer.currentBalance?.toFixed(2) || '0.00'} DH
                     </Text>
                 </View>
+
+                {currentCustomer.phone ? (
+                    <TouchableOpacity 
+                        style={styles.shareCredentialsBtn}
+                        onPress={handleShareCredentials}
+                    >
+                        <Share2 size={16} color="#4f46e5" />
+                        <Text style={styles.shareCredentialsText}>Partager les accès via WhatsApp</Text>
+                    </TouchableOpacity>
+                ) : null}
             </View>
 
             {/* Payment Section (Pay Credit) */}
@@ -259,7 +299,24 @@ const styles = StyleSheet.create({
     txnTotal: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
     emptyHistory: { alignItems: 'center', marginTop: 30 },
     emptyHistoryText: { fontSize: 14, color: '#94a3b8', marginTop: 10, fontWeight: 'bold' },
-    disabled: { opacity: 0.6 }
+    disabled: { opacity: 0.6 },
+    shareCredentialsBtn: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        gap: 8, 
+        marginTop: 15, 
+        paddingVertical: 8, 
+        paddingHorizontal: 16, 
+        backgroundColor: '#f5f3ff', 
+        borderRadius: 12, 
+        borderWidth: 1, 
+        borderColor: '#ddd6fe' 
+    },
+    shareCredentialsText: { 
+        fontSize: 12, 
+        fontWeight: 'bold', 
+        color: '#4f46e5' 
+    }
 });
 
 export default CustomerDetailScreen;

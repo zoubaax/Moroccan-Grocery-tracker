@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Keyboard, Linking } from 'react-native';
 import { ArrowLeft, User, Phone, Save } from 'lucide-react-native';
 import axios from 'axios';
 
@@ -27,7 +27,7 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                 name: name.trim(),
                 email: generatedEmail,
                 phone: phone.trim(),
-                password: 'client123', // clients don't need login, set dummy password
+                password: 'client123', // password for login
                 role: 'client'
             };
 
@@ -35,8 +35,49 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            Alert.alert("Succès", `Client ${name.trim()} créé avec succès !`);
-            onSuccess(); // Triggers reload/refresh and goes back
+            if (phone.trim()) {
+                let formattedPhone = phone.trim();
+                if (formattedPhone.startsWith('0')) {
+                    formattedPhone = '212' + formattedPhone.substring(1);
+                } else if (formattedPhone.startsWith('+')) {
+                    formattedPhone = formattedPhone.substring(1);
+                }
+
+                const message = `Salam ${name.trim()} 👋\n\nVoici tes identifiants pour te connecter à l'application *7anoti* et suivre tes crédits et tes achats :\n\n📱 *Identifiant* : ${phone.trim()}\n🔑 *Mot de passe* : client123`;
+                const encodedMsg = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMsg}`;
+
+                Alert.alert(
+                    "Succès",
+                    `Le client ${name.trim()} a été créé avec succès !`,
+                    [
+                        {
+                            text: "Partager via WhatsApp",
+                            onPress: async () => {
+                                try {
+                                    const supported = await Linking.canOpenURL(whatsappUrl);
+                                    if (supported) {
+                                        await Linking.openURL(whatsappUrl);
+                                    } else {
+                                        Alert.alert("Erreur", "WhatsApp n'est pas installé sur cet appareil.");
+                                    }
+                                } catch (err) {
+                                    console.error("Error opening WhatsApp:", err);
+                                } finally {
+                                    onSuccess();
+                                }
+                            }
+                        },
+                        {
+                            text: "Terminer",
+                            onPress: () => onSuccess()
+                        }
+                    ]
+                );
+            } else {
+                Alert.alert("Succès", `Client ${name.trim()} créé avec succès !`);
+                onSuccess();
+            }
         } catch (err) {
             console.error(err);
             const errMsg = err.response?.data?.message || "Échec de l'enregistrement du client.";
