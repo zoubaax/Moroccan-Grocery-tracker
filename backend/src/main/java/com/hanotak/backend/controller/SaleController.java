@@ -105,4 +105,12 @@ public class SaleController {
         List<Sale> sales = saleRepository.findByClientIdOrderByTransactionDateDesc(clientId);
         return ResponseEntity.ok(sales);
     }
+
+    @GetMapping("/my-purchases")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<?> getMyPurchases(Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<Sale> sales = saleRepository.findByClientIdOrderByTransactionDateDesc(userDetails.getId());
+        return ResponseEntity.ok(sales);
+    }
 }

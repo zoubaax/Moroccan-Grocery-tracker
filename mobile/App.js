@@ -9,6 +9,7 @@ import CustomerSearchScreen from './src/screens/CustomerSearchScreen';
 import CustomerCreateScreen from './src/screens/CustomerCreateScreen';
 import CustomerDetailScreen from './src/screens/CustomerDetailScreen';
 import SalesReportScreen from './src/screens/SalesReportScreen';
+import ClientDashboardScreen from './src/screens/ClientDashboardScreen';
 import * as SplashScreen from 'expo-splash-screen';
 import { ArrowLeft, ShoppingCart, Power, User } from 'lucide-react-native';
 import axios from 'axios';
@@ -50,6 +51,8 @@ export default function App() {
     setUser(userData);
     if (userData.role === 'ROLE_MOUL7ANOUT') {
         setCurrentScreen('portal');
+    } else if (userData.role === 'ROLE_CLIENT') {
+        setCurrentScreen('client_dashboard');
     } else {
         setCurrentScreen('scanner');
     }
@@ -189,6 +192,14 @@ export default function App() {
             token={user?.token}
             apiUrl={API_URL}
             onBack={() => setCurrentScreen('portal')}
+          />
+      )}
+
+      {currentScreen === 'client_dashboard' && (
+          <ClientDashboardScreen 
+            user={user}
+            apiUrl={API_URL}
+            onLogout={handleLogout}
           />
       )}
       

@@ -21,7 +21,7 @@ const LoginScreen = ({ onLogin }) => {
         setError('');
         try {
             const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-            const allowedRoles = ['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MOUL7ANOUT'];
+            const allowedRoles = ['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MOUL7ANOUT', 'ROLE_CLIENT'];
             if (allowedRoles.includes(response.data.role)) {
                 onLogin(response.data);
             } else {

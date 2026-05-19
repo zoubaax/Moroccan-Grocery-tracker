@@ -27,7 +27,9 @@ public class UserController {
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<?> getCurrentUser(Authentication authentication) {
     UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    return ResponseEntity.ok(userDetails);
+    User user = userService.getUserById(userDetails.getId())
+        .orElseThrow(() -> new RuntimeException("Error: User not found."));
+    return ResponseEntity.ok(user);
   }
 
   @GetMapping("/clients")
