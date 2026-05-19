@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Keyboard, Image, Linking } from 'react-native';
 import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt, Share2 } from 'lucide-react-native';
 import axios from 'axios';
+import { generateAndShareReceipt } from '../services/ReceiptService';
 
 const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     const [currentCustomer, setCurrentCustomer] = useState(customer);
@@ -111,6 +112,14 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
         }
     };
 
+    const handleGenerateReceipt = async (transaction) => {
+        const receiptData = {
+            ...transaction,
+            client: currentCustomer
+        };
+        await generateAndShareReceipt(receiptData);
+    };
+
     const renderTransactionItem = ({ item }) => (
         <View style={styles.txnCard}>
             <View style={styles.txnHeader}>
@@ -118,7 +127,15 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                     <Receipt size={14} color="#64748b" />
                     <Text style={styles.txnId}>Achat #{item.id}</Text>
                 </View>
-                <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
+                    <TouchableOpacity 
+                        onPress={() => handleGenerateReceipt(item)}
+                        style={styles.txnPrintBtn}
+                    >
+                        <Share2 size={12} color="#4f46e5" />
+                    </TouchableOpacity>
+                </View>
             </View>
             
             {/* List of items */}
@@ -316,6 +333,16 @@ const styles = StyleSheet.create({
         fontSize: 12, 
         fontWeight: 'bold', 
         color: '#4f46e5' 
+    },
+    txnPrintBtn: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        backgroundColor: '#f5f3ff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#ddd6fe'
     }
 });
 

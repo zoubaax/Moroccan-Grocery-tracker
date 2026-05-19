@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Image, Linking, RefreshControl } from 'react-native';
-import { Phone, MessageCircle, Receipt, LogOut, Calendar, ShoppingBag, CreditCard, DollarSign, ShieldAlert, CheckCircle2, User } from 'lucide-react-native';
+import { Phone, MessageCircle, Receipt, LogOut, Calendar, ShoppingBag, CreditCard, DollarSign, ShieldAlert, CheckCircle2, User, Share2 } from 'lucide-react-native';
 import axios from 'axios';
+import { generateAndShareReceipt } from '../services/ReceiptService';
 
 const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
     const [profile, setProfile] = useState(user);
@@ -55,6 +56,14 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
         }
     };
 
+    const handleGenerateReceipt = async (transaction) => {
+        const receiptData = {
+            ...transaction,
+            client: profile
+        };
+        await generateAndShareReceipt(receiptData);
+    };
+
     // Get shopkeeper contact info from transaction history or default to generic number
     const getShopkeeperContact = () => {
         if (purchases && purchases.length > 0) {
@@ -96,7 +105,15 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
                     <Receipt size={16} color="#6366f1" />
                     <Text style={styles.txnId}>Achat #{item.id}</Text>
                 </View>
-                <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
+                    <TouchableOpacity 
+                        onPress={() => handleGenerateReceipt(item)}
+                        style={styles.txnPrintBtn}
+                    >
+                        <Share2 size={12} color="#4f46e5" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* List of items */}
@@ -272,7 +289,17 @@ const styles = StyleSheet.create({
     totalText: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
     emptyHistory: { alignItems: 'center', paddingVertical: 40 },
     emptyHistoryText: { fontSize: 14, fontWeight: 'bold', color: '#64748b', marginTop: 12 },
-    emptyHistorySub: { fontSize: 12, color: '#94a3b8', marginTop: 4, textAlign: 'center' }
+    emptyHistorySub: { fontSize: 12, color: '#94a3b8', marginTop: 4, textAlign: 'center' },
+    txnPrintBtn: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        backgroundColor: '#f5f3ff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#ddd6fe'
+    }
 });
 
 export default ClientDashboardScreen;

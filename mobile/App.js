@@ -248,11 +248,11 @@ export default function App() {
           />
         </SafeAreaView>
       )}
-
       {currentScreen === 'cart' && (
         <SalesCartScreen 
             cart={salesCart}
             token={user?.token}
+            user={user}
             selectedCustomer={selectedCustomer}
             onUpdateCart={setSalesCart}
             onClear={() => setSalesCart([])}

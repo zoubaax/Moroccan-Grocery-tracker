@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
-import { User, Lock, Eye, EyeOff, Store, ShieldCheck } from 'lucide-react-native';
+import { User, Lock, Eye, EyeOff, Store, ShieldCheck, Fingerprint } from 'lucide-react-native';
 import axios from 'axios';
+import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -11,18 +13,63 @@ const LoginScreen = ({ onLogin }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+    const [savedCredentials, setSavedCredentials] = useState(null);
 
-    const handleLogin = async () => {
-        if (!email.trim() || !password.trim()) {
-            setError('Veuillez remplir tous les champs.');
-            return;
+    useEffect(() => {
+        checkBiometrics();
+    }, []);
+
+    const checkBiometrics = async () => {
+        try {
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+            if (hasHardware && isEnrolled) {
+                const credsStr = await AsyncStorage.getItem('saved_credentials');
+                if (credsStr) {
+                    const parsed = JSON.parse(credsStr);
+                    setSavedCredentials(parsed);
+                    setIsBiometricAvailable(true);
+                    
+                    // Auto-trigger biometric prompt on screen load for quick entry
+                    setTimeout(() => {
+                        triggerBiometricAuth(parsed);
+                    }, 600);
+                }
+            }
+        } catch (e) {
+            console.error("Biometrics check error:", e);
         }
+    };
+
+    const triggerBiometricAuth = async (credsToUse = savedCredentials) => {
+        if (!credsToUse) return;
+        try {
+            const result = await LocalAuthentication.authenticateAsync({
+                promptMessage: 'Connexion avec empreinte / FaceID',
+                cancelLabel: 'Annuler',
+                disableDeviceFallback: false,
+            });
+
+            if (result.success) {
+                setEmail(credsToUse.email);
+                setPassword(credsToUse.password);
+                performLogin(credsToUse.email, credsToUse.password);
+            }
+        } catch (e) {
+            console.error("Biometric authentication error:", e);
+        }
+    };
+
+    const performLogin = async (loginEmail, loginPassword) => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+            const response = await axios.post(`${API_URL}/auth/login`, { email: loginEmail, password: loginPassword });
             const allowedRoles = ['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MOUL7ANOUT', 'ROLE_CLIENT'];
             if (allowedRoles.includes(response.data.role)) {
+                // Securely save credentials locally for subsequent biometric bypass
+                await AsyncStorage.setItem('saved_credentials', JSON.stringify({ email: loginEmail, password: loginPassword }));
                 onLogin(response.data);
             } else {
                 setError('Accès non autorisé pour ce rôle.');
@@ -37,6 +84,14 @@ const LoginScreen = ({ onLogin }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleLogin = () => {
+        if (!email.trim() || !password.trim()) {
+            setError('Veuillez remplir tous les champs.');
+            return;
+        }
+        performLogin(email, password);
     };
 
     return (
@@ -58,17 +113,17 @@ const LoginScreen = ({ onLogin }) => {
                     {/* Form */}
                     <View style={styles.form}>
                         {/* Email Input */}
-                        <Text style={styles.label}>IDENTIFIANT (EMAIL)</Text>
+                        <Text style={styles.label}>IDENTIFIANT (TÉLÉPHONE OU EMAIL)</Text>
                         <View style={styles.inputContainer}>
                             <User color="#94a3b8" size={20} style={styles.inputIcon} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="nom@7anotk.ma" 
+                                placeholder="Ex: 0612345678 ou email" 
                                 placeholderTextColor="#94a3b8"
                                 value={email} 
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
-                                keyboardType="email-address"
+                                keyboardType="default"
                             />
                         </View>
 
@@ -103,25 +158,38 @@ const LoginScreen = ({ onLogin }) => {
                             </View>
                         ) : null}
 
-                        {/* Login Button */}
-                        <TouchableOpacity 
-                            style={styles.button} 
-                            onPress={handleLogin} 
-                            disabled={isLoading}
-                            activeOpacity={0.8}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.buttonText}>SE CONNECTER</Text>
+                        {/* Action buttons (Submit and Biometric Icon) */}
+                        <View style={styles.actionRow}>
+                            <TouchableOpacity 
+                                style={[styles.button, isBiometricAvailable && { flex: 1, marginRight: 10 }]} 
+                                onPress={handleLogin} 
+                                disabled={isLoading}
+                                activeOpacity={0.8}
+                            >
+                                {isLoading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.buttonText}>SE CONNECTER</Text>
+                                )}
+                            </TouchableOpacity>
+
+                            {isBiometricAvailable && (
+                                <TouchableOpacity 
+                                    style={styles.biometricBtn} 
+                                    onPress={() => triggerBiometricAuth()} 
+                                    disabled={isLoading}
+                                    activeOpacity={0.8}
+                                >
+                                    <Fingerprint color="#4f46e5" size={26} />
+                                </TouchableOpacity>
                             )}
-                        </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* Footer */}
                     <View style={styles.footer}>
                         <ShieldCheck color="#94a3b8" size={16} />
-                        <Text style={styles.footerText}>Connexion sécurisée SSL/TLS</Text>
+                        <Text style={styles.footerText}>Connexion sécurisée par biométrie</Text>
                     </View>
                 </View>
             </KeyboardAvoidingView>
@@ -196,6 +264,27 @@ const styles = StyleSheet.create({
         elevation: 6 
     },
     buttonText: { color: '#fff', fontSize: 15, fontWeight: 'bold', letterSpacing: 1 },
+    actionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10
+    },
+    biometricBtn: {
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        backgroundColor: '#f5f3ff',
+        borderWidth: 1,
+        borderColor: '#ddd6fe',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        shadowColor: '#4f46e5',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
+        elevation: 4
+    },
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 40 },
     footerText: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold' }
 });

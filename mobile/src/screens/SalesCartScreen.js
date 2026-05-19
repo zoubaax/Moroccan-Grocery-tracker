@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Image } from 'react-native';
 import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft, Smartphone, Users } from 'lucide-react-native';
 import axios from 'axios';
+import { generateAndShareReceipt } from '../services/ReceiptService';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBack, selectedCustomer, onChooseCustomer }) => {
+const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete, onBack, selectedCustomer, onChooseCustomer }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState(selectedCustomer ? 'CREDIT' : 'CASH');
 
@@ -45,8 +46,43 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, onComplete, onBac
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            Alert.alert("Succès", `Vente terminée ! Total: ${total} DH`);
-            onComplete();
+            const mockSale = {
+                id: Math.floor(1000 + Math.random() * 9000), // Random 4-digit transaction reference for receipt
+                transactionDate: new Date().toISOString(),
+                paymentMethod: paymentMethod,
+                totalAmount: total,
+                shopOwner: {
+                    name: user?.name || user?.username || "L'Épicier",
+                    phone: user?.phone || "Non spécifié"
+                },
+                client: selectedCustomer ? {
+                    name: selectedCustomer.name,
+                    phone: selectedCustomer.phone
+                } : null,
+                items: cart.map(item => ({
+                    product: { name: item.name },
+                    unitPrice: item.price,
+                    quantity: item.quantity
+                }))
+            };
+
+            Alert.alert(
+                "Succès",
+                `Vente terminée ! Total: ${total.toFixed(2)} DH`,
+                [
+                    {
+                        text: "Générer Reçu PDF",
+                        onPress: async () => {
+                            await generateAndShareReceipt(mockSale);
+                            onComplete();
+                        }
+                    },
+                    {
+                        text: "Terminer",
+                        onPress: () => onComplete()
+                    }
+                ]
+            );
         } catch (err) {
             console.error(err);
             Alert.alert("Erreur", err.response?.data?.message || "Échec de la transaction.");
