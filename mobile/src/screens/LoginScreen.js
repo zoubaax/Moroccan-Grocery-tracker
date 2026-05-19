@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
-import { User, Lock, Eye, EyeOff, Store, ShieldCheck, Fingerprint } from 'lucide-react-native';
+import { User, Lock, Eye, EyeOff, Store, ShieldCheck, Fingerprint, ScanFace } from 'lucide-react-native';
 import axios from 'axios';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,6 +14,7 @@ const LoginScreen = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+    const [biometricType, setBiometricType] = useState('FINGERPRINT');
     const [savedCredentials, setSavedCredentials] = useState(null);
 
     useEffect(() => {
@@ -25,6 +26,14 @@ const LoginScreen = ({ onLogin }) => {
             const hasHardware = await LocalAuthentication.hasHardwareAsync();
             const isEnrolled = await LocalAuthentication.isEnrolledAsync();
             if (hasHardware && isEnrolled) {
+                // Check if device supports FaceID/facial recognition
+                const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+                if (supportedTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+                    setBiometricType('FACIAL_RECOGNITION');
+                } else {
+                    setBiometricType('FINGERPRINT');
+                }
+
                 const credsStr = await AsyncStorage.getItem('saved_credentials');
                 if (credsStr) {
                     const parsed = JSON.parse(credsStr);
@@ -45,8 +54,9 @@ const LoginScreen = ({ onLogin }) => {
     const triggerBiometricAuth = async (credsToUse = savedCredentials) => {
         if (!credsToUse) return;
         try {
+            const isFaceId = biometricType === 'FACIAL_RECOGNITION';
             const result = await LocalAuthentication.authenticateAsync({
-                promptMessage: 'Connexion avec empreinte / FaceID',
+                promptMessage: isFaceId ? 'Connexion avec FaceID' : 'Connexion avec empreinte digitale',
                 cancelLabel: 'Annuler',
                 disableDeviceFallback: false,
             });
@@ -161,7 +171,7 @@ const LoginScreen = ({ onLogin }) => {
                         {/* Action buttons (Submit and Biometric Icon) */}
                         <View style={styles.actionRow}>
                             <TouchableOpacity 
-                                style={[styles.button, isBiometricAvailable && { flex: 1, marginRight: 10 }]} 
+                                style={[styles.button, { flex: 1 }, isBiometricAvailable && { marginRight: 10 }]} 
                                 onPress={handleLogin} 
                                 disabled={isLoading}
                                 activeOpacity={0.8}
@@ -180,7 +190,11 @@ const LoginScreen = ({ onLogin }) => {
                                     disabled={isLoading}
                                     activeOpacity={0.8}
                                 >
-                                    <Fingerprint color="#4f46e5" size={26} />
+                                    {biometricType === 'FACIAL_RECOGNITION' ? (
+                                        <ScanFace color="#4f46e5" size={26} />
+                                    ) : (
+                                        <Fingerprint color="#4f46e5" size={26} />
+                                    )}
                                 </TouchableOpacity>
                             )}
                         </View>

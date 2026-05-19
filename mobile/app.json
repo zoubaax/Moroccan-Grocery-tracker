@@ -12,8 +12,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permettre à 7anoti d'utiliser Face ID pour se connecter rapidement."
+        }
+      ]
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Cette application utilise Face ID pour vous connecter rapidement et en toute sécurité à votre compte."
+      }
     },
     "android": {
       "adaptiveIcon": {
