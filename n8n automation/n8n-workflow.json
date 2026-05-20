@@ -1,0 +1,106 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "credit-reminder",
+        "options": {}
+      },
+      "id": "e98e4f5a-c8a7-4780-9285-d602db0d297a",
+      "name": "Webhook (React Native Trigger)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "credit-reminder"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_NVIDIA_OR_GROK_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"meta/llama-3.1-405b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Tu es l'assistant IA d'un épicier marocain (Moul 7anout). Rédige un message court et amical en Darija marocain (lettres latines) et en Français pour rappeler un crédit en retard. Sois très respectueux. Ne mets pas d'espaces réservés, utilise directement les noms.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Client: {{$json.body.clientName}}, Montant: {{$json.body.amount}} DH, Retard de: {{$json.body.daysOverdue}} jours, Épicerie: {{$json.body.shopName}}\"\n    }\n  ],\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "id": "2bc8f42a-a9a7-4710-9173-60f8db2d398a",
+      "name": "Generate AI Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8084/message/sendText/7anoti",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "7anotiApiKey123"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $('Webhook (React Native Trigger)').item.json.body.clientPhone }}\",\n  \"options\": {\n    \"delay\": 1200,\n    \"presence\": \"composing\"\n  },\n  \"textMessage\": {\n    \"text\": \"{{ $json.choices[0].message.content }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "c1f7a43f-b88a-4933-8273-d5d8fb4f1a2a",
+      "name": "Send WhatsApp (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook (React Native Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Message": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp (Evolution API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

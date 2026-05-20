@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Keyboard, Image, Linking } from 'react-native';
-import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt, Share2 } from 'lucide-react-native';
+import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt, Share2, Bot } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
 
@@ -9,6 +9,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     const [transactions, setTransactions] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+    const [isReminderLoading, setIsReminderLoading] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
 
     const fetchHistoryAndDetails = async () => {
@@ -38,6 +39,44 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     useEffect(() => {
         fetchHistoryAndDetails();
     }, []);
+
+    const handleSendAIReminder = async () => {
+        if (!currentCustomer.phone) {
+            Alert.alert("Erreur", "Ce client n'a pas de numéro de téléphone.");
+            return;
+        }
+        
+        let formattedPhone = currentCustomer.phone.trim();
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = '212' + formattedPhone.substring(1);
+        } else if (formattedPhone.startsWith('+')) {
+            formattedPhone = formattedPhone.substring(1);
+        }
+        
+        const webhookUrl = process.env.EXPO_PUBLIC_N8N_WEBHOOK_URL;
+        if (!webhookUrl) {
+            Alert.alert("Erreur", "L'URL du Webhook n8n n'est pas configurée dans .env.");
+            return;
+        }
+
+        setIsReminderLoading(true);
+        try {
+            await axios.post(webhookUrl, {
+                clientName: currentCustomer.name,
+                clientPhone: formattedPhone,
+                amount: currentCustomer.currentBalance,
+                daysOverdue: 15,
+                shopName: "Épicerie 7anoti"
+            });
+
+            Alert.alert("Succès", "Rappel envoyé via WhatsApp par l'IA !");
+        } catch (err) {
+            console.error("Error sending reminder:", err);
+            Alert.alert("Erreur", "Impossible d'envoyer le rappel.");
+        } finally {
+            setIsReminderLoading(false);
+        }
+    };
 
     const handleShareCredentials = async () => {
         if (!currentCustomer.phone) {
@@ -205,13 +244,32 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 </View>
 
                 {currentCustomer.phone ? (
-                    <TouchableOpacity 
-                        style={styles.shareCredentialsBtn}
-                        onPress={handleShareCredentials}
-                    >
-                        <Share2 size={16} color="#4f46e5" />
-                        <Text style={styles.shareCredentialsText}>Partager les accès via WhatsApp</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 15, width: '100%' }}>
+                        <TouchableOpacity 
+                            style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, justifyContent: 'center' }]}
+                            onPress={handleShareCredentials}
+                        >
+                            <Share2 size={16} color="#4f46e5" />
+                            <Text style={styles.shareCredentialsText}>Accès App</Text>
+                        </TouchableOpacity>
+
+                        {hasDebt && (
+                            <TouchableOpacity 
+                                style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center' }]}
+                                onPress={handleSendAIReminder}
+                                disabled={isReminderLoading}
+                            >
+                                {isReminderLoading ? (
+                                    <ActivityIndicator size="small" color="#ef4444" />
+                                ) : (
+                                    <>
+                                        <Bot size={16} color="#ef4444" />
+                                        <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>Rappel IA</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 ) : null}
             </View>
 
