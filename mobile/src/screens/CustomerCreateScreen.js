@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Keyboard, Linking } from 'react-native';
 import { ArrowLeft, User, Phone, Save } from 'lucide-react-native';
 import axios from 'axios';
+import { useLanguage } from '../services/LanguageContext';
 
 const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
+    const { t, language, isRTL, flexDir, tAlign } = useLanguage();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            Alert.alert("Erreur", "Le nom du client est requis.");
+            Alert.alert(t('common.error'), t('customerCreate.errorEmpty'));
             return;
         }
 
@@ -43,23 +45,25 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                     formattedPhone = formattedPhone.substring(1);
                 }
 
-                const message = `Salam ${name.trim()} 👋\n\nVoici tes identifiants pour te connecter à l'application *7anoti* et suivre tes crédits et tes achats :\n\n📱 *Identifiant* : ${phone.trim()}\n🔑 *Mot de passe* : client123`;
+                const message = language === 'fr' 
+                    ? `Salam ${name.trim()} 👋\n\nVoici tes identifiants pour te connecter à l'application *7anoti* et suivre tes crédits et tes achats :\n\n📱 *Identifiant* : ${phone.trim()}\n🔑 *Mot de passe* : client123`
+                    : `سلام ${name.trim()} 👋\n\nإليك بيانات الاتصال الخاصة بك للولوج إلى تطبيق *حانوتي* ومتابعة ديونك ومشترياتك:\n\n📱 *المعرف*: ${phone.trim()}\n🔑 *كلمة المرور*: client123`;
                 const encodedMsg = encodeURIComponent(message);
                 const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMsg}`;
 
                 Alert.alert(
-                    "Succès",
-                    `Le client ${name.trim()} a été créé avec succès !`,
+                    t('common.success'),
+                    language === 'fr' ? `Le client ${name.trim()} a été créé avec succès !` : `تم إنشاء حساب الزبون ${name.trim()} بنجاح!`,
                     [
                         {
-                            text: "Partager via WhatsApp",
+                            text: language === 'fr' ? "Partager via WhatsApp" : "مشاركة عبر واتساب",
                             onPress: async () => {
                                 try {
                                     const supported = await Linking.canOpenURL(whatsappUrl);
                                     if (supported) {
                                         await Linking.openURL(whatsappUrl);
                                     } else {
-                                        Alert.alert("Erreur", "WhatsApp n'est pas installé sur cet appareil.");
+                                        Alert.alert(t('common.error'), language === 'fr' ? "WhatsApp n'est pas installé sur cet appareil." : "واتساب غير مثبت على هذا الجهاز.");
                                     }
                                 } catch (err) {
                                     console.error("Error opening WhatsApp:", err);
@@ -69,19 +73,19 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                             }
                         },
                         {
-                            text: "Terminer",
+                            text: language === 'fr' ? "Terminer" : "إنهاء",
                             onPress: () => onSuccess()
                         }
                     ]
                 );
             } else {
-                Alert.alert("Succès", `Client ${name.trim()} créé avec succès !`);
+                Alert.alert(t('common.success'), language === 'fr' ? `Le client ${name.trim()} a été créé avec succès !` : `تم إنشاء حساب الزبون ${name.trim()} بنجاح!`);
                 onSuccess();
             }
         } catch (err) {
             console.error(err);
-            const errMsg = err.response?.data?.message || "Échec de l'enregistrement du client.";
-            Alert.alert("Erreur", errMsg);
+            const errMsg = err.response?.data?.message || t('customerCreate.errorNetwork');
+            Alert.alert(t('common.error'), errMsg);
         } finally {
             setIsLoading(false);
         }
@@ -89,33 +93,33 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#1e293b" size={24} />
+                    <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
-                <Text style={styles.title}>NOUVEAU CLIENT</Text>
+                <Text style={styles.title}>{t('customerCreate.title')}</Text>
                 <View style={{ width: 44 }} />
             </View>
 
             <View style={styles.form}>
-                <Text style={styles.label}>Nom Complet *</Text>
-                <View style={styles.inputRow}>
-                    <User size={20} color="#94a3b8" style={styles.inputIcon} />
+                <Text style={[styles.label, { textAlign: tAlign }]}>{t('customerCreate.name')} *</Text>
+                <View style={[styles.inputRow, { flexDirection: flexDir }]}>
+                    <User size={20} color="#94a3b8" style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
                     <TextInput 
-                        style={styles.input}
-                        placeholder="Ex: Ahmed Alaoui"
+                        style={[styles.input, { textAlign: tAlign }]}
+                        placeholder={t('customerCreate.namePlaceholder')}
                         placeholderTextColor="#cbd5e1"
                         value={name}
                         onChangeText={setName}
                     />
                 </View>
 
-                <Text style={[styles.label, { marginTop: 25 }]}>Téléphone (Optionnel)</Text>
-                <View style={styles.inputRow}>
-                    <Phone size={20} color="#94a3b8" style={styles.inputIcon} />
+                <Text style={[styles.label, { marginTop: 25, textAlign: tAlign }]}>{t('customerCreate.phone')}</Text>
+                <View style={[styles.inputRow, { flexDirection: flexDir }]}>
+                    <Phone size={20} color="#94a3b8" style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
                     <TextInput 
-                        style={styles.input}
-                        placeholder="Ex: 0612345678"
+                        style={[styles.input, { textAlign: tAlign }]}
+                        placeholder={t('customerCreate.phonePlaceholder')}
                         placeholderTextColor="#cbd5e1"
                         value={phone}
                         onChangeText={setPhone}
@@ -124,7 +128,7 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                 </View>
 
                 <TouchableOpacity 
-                    style={[styles.saveBtn, isLoading && styles.disabled]}
+                    style={[styles.saveBtn, isLoading && styles.disabled, { flexDirection: flexDir }]}
                     onPress={handleCreate}
                     disabled={isLoading}
                 >
@@ -133,7 +137,7 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
                     ) : (
                         <>
                             <Save size={20} color="#fff" />
-                            <Text style={styles.saveText}>ENREGISTRER LE CLIENT</Text>
+                            <Text style={styles.saveText}>{t('customerCreate.submit')}</Text>
                         </>
                     )}
                 </TouchableOpacity>

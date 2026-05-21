@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Image } from 'react-native';
 import { ChevronLeft, BarChart2, TrendingUp, ShoppingBag, CreditCard, Banknote, Calendar } from 'lucide-react-native';
 import axios from 'axios';
+import { useLanguage } from '../services/LanguageContext';
 
 const SalesReportScreen = ({ token, apiUrl, onBack }) => {
+    const { t, isRTL, flexDir, tAlign } = useLanguage();
     const [sales, setSales] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTab, setSelectedTab] = useState('day'); // 'day', 'week', 'month'
@@ -81,14 +83,14 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
 
     const renderSaleItem = ({ item }) => (
         <View style={styles.saleCard}>
-            <View style={styles.saleHeader}>
-                <View>
-                    <Text style={styles.saleId}>Vente #{item.id}</Text>
+            <View style={[styles.saleHeader, { flexDirection: flexDir }]}>
+                <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                    <Text style={styles.saleId}>{t('salesReport.saleNumber', { id: item.id })}</Text>
                     <Text style={styles.saleTime}>{formatDate(item.transactionDate)}</Text>
                 </View>
-                <View style={styles.saleHeaderRight}>
+                <View style={[styles.saleHeaderRight, { alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
                     <Text style={[styles.methodBadge, item.paymentMethod === 'CREDIT' ? styles.badgeCredit : item.paymentMethod === 'CARD' ? styles.badgeCard : styles.badgeCash]}>
-                        {item.paymentMethod}
+                        {item.paymentMethod === 'CASH' ? t('salesReport.cash').toUpperCase() : item.paymentMethod === 'CARD' ? t('salesReport.card').toUpperCase() : t('salesReport.credit').toUpperCase()}
                     </Text>
                     <Text style={styles.saleTotal}>{item.totalAmount?.toFixed(2)} DH</Text>
                 </View>
@@ -96,15 +98,15 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
 
             {/* Client tag if credit */}
             {item.paymentMethod === 'CREDIT' && item.client && (
-                <View style={styles.clientBadge}>
-                    <Text style={styles.clientBadgeText}>Client: {item.client.name}</Text>
+                <View style={[styles.clientBadge, { alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
+                    <Text style={styles.clientBadgeText}>{t('salesReport.clientLabel', { name: item.client.name })}</Text>
                 </View>
             )}
 
             {/* Products List */}
             <View style={styles.itemsList}>
                 {item.items && item.items.map((saleItem, index) => (
-                    <View key={index} style={styles.productRow}>
+                    <View key={index} style={[styles.productRow, { flexDirection: flexDir }]}>
                         {saleItem.product?.imageUrl ? (
                             <Image source={{ uri: saleItem.product.imageUrl }} style={styles.productThumb} />
                         ) : (
@@ -112,9 +114,9 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
                                 <ShoppingBag size={12} color="#94a3b8" />
                             </View>
                         )}
-                        <View style={styles.productInfo}>
-                            <Text style={styles.productName} numberOfLines={1}>
-                                {saleItem.product?.name || 'Produit inconnu'}
+                        <View style={[styles.productInfo, { marginLeft: isRTL ? 0 : 8, marginRight: isRTL ? 8 : 0, flexDirection: flexDir, alignItems: 'center', justifyContent: 'space-between' }]}>
+                            <Text style={[styles.productName, { textAlign: tAlign }]} numberOfLines={1}>
+                                {saleItem.product?.name || t('salesReport.productUnknown')}
                             </Text>
                             <Text style={styles.productQtyPrice}>
                                 {saleItem.quantity} x {saleItem.unitPrice?.toFixed(2)} DH
@@ -129,44 +131,44 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ChevronLeft size={24} color="#1e293b" />
+                    <ChevronLeft size={24} color="#1e293b" style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>HISTORIQUE & RAPPORTS</Text>
+                <Text style={styles.headerTitle}>{t('salesReport.headerTitle')}</Text>
                 <TouchableOpacity onPress={fetchSales} style={styles.refreshBtn}>
-                    <Text style={styles.refreshText}>Actualiser</Text>
+                    <Text style={styles.refreshText}>{t('salesReport.refreshText')}</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Tabs */}
-            <View style={styles.tabsContainer}>
+            <View style={[styles.tabsContainer, { flexDirection: flexDir }]}>
                 <TouchableOpacity 
                     onPress={() => setSelectedTab('day')}
                     style={[styles.tab, selectedTab === 'day' && styles.tabActive]}
                 >
-                    <Text style={[styles.tabText, selectedTab === 'day' && styles.tabTextActive]}>Aujourd'hui</Text>
+                    <Text style={[styles.tabText, selectedTab === 'day' && styles.tabTextActive]}>{t('salesReport.tabToday')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={() => setSelectedTab('week')}
                     style={[styles.tab, selectedTab === 'week' && styles.tabActive]}
                 >
-                    <Text style={[styles.tabText, selectedTab === 'week' && styles.tabTextActive]}>Semaine</Text>
+                    <Text style={[styles.tabText, selectedTab === 'week' && styles.tabTextActive]}>{t('salesReport.tabWeek')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={() => setSelectedTab('month')}
                     style={[styles.tab, selectedTab === 'month' && styles.tabActive]}
                 >
-                    <Text style={[styles.tabText, selectedTab === 'month' && styles.tabTextActive]}>Ce Mois</Text>
+                    <Text style={[styles.tabText, selectedTab === 'month' && styles.tabTextActive]}>{t('salesReport.tabMonth')}</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Stats Dashboard */}
             <View style={styles.statsCard}>
-                <View style={styles.revenueBlock}>
-                    <TrendingUp color="#10b981" size={24} />
-                    <View style={styles.revenueInfo}>
-                        <Text style={styles.revenueLabel}>REVENUS TOTAUX ({filteredSales.length} ventes)</Text>
+                <View style={[styles.revenueBlock, { flexDirection: flexDir }]}>
+                    <TrendingUp color="#10b981" size={24} style={isRTL && { transform: [{ scaleX: -1 }] }} />
+                    <View style={[styles.revenueInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                        <Text style={styles.revenueLabel}>{t('salesReport.revenueLabel', { count: filteredSales.length })}</Text>
                         <Text style={styles.revenueValue}>{stats.totalRevenue.toFixed(2)} MAD</Text>
                     </View>
                 </View>
@@ -174,21 +176,21 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
                 <View style={styles.divider} />
 
                 {/* Breakdown */}
-                <View style={styles.breakdownRow}>
+                <View style={[styles.breakdownRow, { flexDirection: flexDir }]}>
                     <View style={styles.breakdownItem}>
                         <Banknote size={16} color="#475569" />
                         <Text style={styles.breakdownVal}>{stats.cashAmount.toFixed(0)} DH</Text>
-                        <Text style={styles.breakdownLbl}>Cash</Text>
+                        <Text style={styles.breakdownLbl}>{t('salesReport.cash')}</Text>
                     </View>
                     <View style={styles.breakdownItem}>
                         <CreditCard size={16} color="#6366f1" />
                         <Text style={styles.breakdownVal}>{stats.cardAmount.toFixed(0)} DH</Text>
-                        <Text style={styles.breakdownLbl}>Carte</Text>
+                        <Text style={styles.breakdownLbl}>{t('salesReport.card')}</Text>
                     </View>
                     <View style={styles.breakdownItem}>
                         <Calendar size={16} color="#f43f5e" />
                         <Text style={styles.breakdownVal}>{stats.creditAmount.toFixed(0)} DH</Text>
-                        <Text style={styles.breakdownLbl}>Crédit</Text>
+                        <Text style={styles.breakdownLbl}>{t('salesReport.credit')}</Text>
                     </View>
                 </View>
             </View>
@@ -207,7 +209,7 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
                     ListEmptyComponent={() => (
                         <View style={styles.emptyContainer}>
                             <ShoppingBag size={48} color="#cbd5e1" />
-                            <Text style={styles.emptyText}>Aucune vente enregistrée pour cette période.</Text>
+                            <Text style={styles.emptyText}>{t('salesReport.emptyHistory')}</Text>
                         </View>
                     )}
                 />

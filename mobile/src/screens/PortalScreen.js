@@ -1,17 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, ScrollView } from 'react-native';
 import { ShoppingBag, Power, Users, ArrowRight, TrendingUp, DollarSign, BarChart2 } from 'lucide-react-native';
+import { useLanguage } from '../services/LanguageContext';
 
 const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
+    const { t, isRTL, flexDir, tAlign } = useLanguage();
     return (
         <ScrollView style={styles.container} bounces={false}>
             {/* Header Banner */}
             <View style={styles.headerBanner}>
                 <SafeAreaView>
-                    <View style={styles.headerTop}>
-                        <View>
-                            <Text style={styles.greeting}>Salam, {userName} 👋</Text>
-                            <Text style={styles.headerSubtitle}>Propriétaire de commerce</Text>
+                    <View style={[styles.headerTop, { flexDirection: flexDir }]}>
+                        <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                            <Text style={[styles.greeting, { textAlign: tAlign }]}>{t('portal.greeting', { name: userName })}</Text>
+                            <Text style={[styles.headerSubtitle, { textAlign: tAlign }]}>{t('portal.subtitle')}</Text>
                         </View>
                         <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
                             <Power color="#ef4444" size={18} />
@@ -23,25 +25,25 @@ const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
             {/* Metrics Dashboard (Floating Card) */}
             <View style={styles.dashboardWrapper}>
                 <View style={styles.dashboardCard}>
-                    <Text style={styles.dashboardTitle}>RÉSUMÉ DU JOUR</Text>
-                    <View style={styles.metricsRow}>
-                        <View style={styles.metricItem}>
+                    <Text style={[styles.dashboardTitle, { textAlign: tAlign }]}>{t('portal.dailySummary')}</Text>
+                    <View style={[styles.metricsRow, { flexDirection: flexDir }]}>
+                        <View style={[styles.metricItem, { flexDirection: flexDir }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: '#eef2ff' }]}>
                                 <TrendingUp color="#4f46e5" size={18} />
                             </View>
-                            <View>
-                                <Text style={styles.metricValue}>1,450.00 DH</Text>
-                                <Text style={styles.metricLabel}>Ventes Estimées</Text>
+                            <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                                <Text style={[styles.metricValue, { textAlign: tAlign }]}>1,450.00 DH</Text>
+                                <Text style={[styles.metricLabel, { textAlign: tAlign }]}>{t('portal.estimatedSales')}</Text>
                             </View>
                         </View>
                         <View style={styles.divider} />
-                        <View style={styles.metricItem}>
+                        <View style={[styles.metricItem, { flexDirection: flexDir }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: '#fef2f2' }]}>
                                 <DollarSign color="#ef4444" size={18} />
                             </View>
-                            <View>
-                                <Text style={styles.metricValue}>850.00 DH</Text>
-                                <Text style={styles.metricLabel}>Crédit En Cours</Text>
+                            <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                                <Text style={[styles.metricValue, { textAlign: tAlign }]}>850.00 DH</Text>
+                                <Text style={[styles.metricLabel, { textAlign: tAlign }]}>{t('portal.currentCredit')}</Text>
                             </View>
                         </View>
                     </View>
@@ -50,75 +52,75 @@ const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
 
             {/* Actions Grid */}
             <View style={styles.content}>
-                <Text style={styles.sectionTitle}>GESTION COMMERCIALE</Text>
+                <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>{t('portal.commercialManagement')}</Text>
 
                 {/* Vente Normale Card */}
                 <TouchableOpacity 
-                    style={[styles.actionCard, styles.sellCard]} 
+                    style={[styles.actionCard, styles.sellCard, { flexDirection: flexDir }]} 
                     onPress={() => onSelectMode('NORMAL')}
                     activeOpacity={0.9}
                 >
-                    <View style={styles.cardContent}>
+                    <View style={[styles.cardContent, { flexDirection: flexDir }]}>
                         <View style={styles.actionIconBox}>
                             <ShoppingBag color="#fff" size={28} />
                         </View>
-                        <View style={styles.cardTextDetails}>
-                            <Text style={styles.actionCardTitle}>VENTE NORMALE</Text>
-                            <Text style={styles.actionCardDesc}>Lancer le scanner pour encaisser un client rapidement (Cash / Carte)</Text>
+                        <View style={[styles.cardTextDetails, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                            <Text style={[styles.actionCardTitle, { textAlign: tAlign }]}>{t('portal.caisseTitle')}</Text>
+                            <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.caisseDesc')}</Text>
                         </View>
                     </View>
                     <View style={styles.arrowCircle}>
-                        <ArrowRight color="#4f46e5" size={20} />
+                        <ArrowRight color="#4f46e5" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                     </View>
                 </TouchableOpacity>
 
                 {/* Credit Card */}
                 <TouchableOpacity 
-                    style={[styles.actionCard, styles.creditCard]} 
+                    style={[styles.actionCard, styles.creditCard, { flexDirection: flexDir }]} 
                     onPress={() => onSelectMode('CREDIT')}
                     activeOpacity={0.9}
                 >
-                    <View style={styles.cardContent}>
+                    <View style={[styles.cardContent, { flexDirection: flexDir }]}>
                         <View style={styles.actionIconBox}>
                             <Users color="#fff" size={28} />
                         </View>
-                        <View style={styles.cardTextDetails}>
-                            <Text style={styles.actionCardTitle}>CARNET DE CRÉDITS</Text>
-                            <Text style={styles.actionCardDesc}>Gérer les comptes clients, enregistrer les dettes et remboursements</Text>
+                        <View style={[styles.cardTextDetails, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                            <Text style={[styles.actionCardTitle, { textAlign: tAlign }]}>{t('portal.creditTitle')}</Text>
+                            <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.creditDesc')}</Text>
                         </View>
                     </View>
                     <View style={styles.arrowCircle}>
-                        <ArrowRight color="#0ea5e9" size={20} />
+                        <ArrowRight color="#0ea5e9" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                     </View>
                 </TouchableOpacity>
 
                 {/* Statistics Card */}
                 <TouchableOpacity 
-                    style={[styles.actionCard, styles.statsCardAction]} 
+                    style={[styles.actionCard, styles.statsCardAction, { flexDirection: flexDir }]} 
                     onPress={() => onSelectMode('STATS')}
                     activeOpacity={0.9}
                 >
-                    <View style={styles.cardContent}>
+                    <View style={[styles.cardContent, { flexDirection: flexDir }]}>
                         <View style={styles.actionIconBox}>
                             <BarChart2 color="#fff" size={28} />
                         </View>
-                        <View style={styles.cardTextDetails}>
-                            <Text style={styles.actionCardTitle}>STATISTIQUES & VENTES</Text>
-                            <Text style={styles.actionCardDesc}>Consulter le journal de ventes, les revenus et les produits vendus</Text>
+                        <View style={[styles.cardTextDetails, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                            <Text style={[styles.actionCardTitle, { textAlign: tAlign }]}>{t('portal.statsTitle')}</Text>
+                            <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.statsDesc')}</Text>
                         </View>
                     </View>
                     <View style={styles.arrowCircle}>
-                        <ArrowRight color="#10b981" size={20} />
+                        <ArrowRight color="#10b981" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                     </View>
                 </TouchableOpacity>
             </View>
 
             {/* Footer */}
-            <View style={styles.footer}>
-                <Text style={styles.appVersion}>7anoti v2.0 • Propulsé par Cloud</Text>
-                <View style={styles.statusBadge}>
+            <View style={[styles.footer, { flexDirection: flexDir }]}>
+                <Text style={styles.appVersion}>{t('portal.version')}</Text>
+                <View style={[styles.statusBadge, { flexDirection: flexDir }]}>
                     <View style={styles.statusDot} />
-                    <Text style={styles.statusText}>EN LIGNE</Text>
+                    <Text style={styles.statusText}>{t('portal.online')}</Text>
                 </View>
             </View>
         </ScrollView>

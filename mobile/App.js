@@ -13,11 +13,13 @@ import ClientDashboardScreen from './src/screens/ClientDashboardScreen';
 import * as SplashScreen from 'expo-splash-screen';
 import { ArrowLeft, ShoppingCart, Power, User } from 'lucide-react-native';
 import axios from 'axios';
+import { LanguageProvider, useLanguage } from './src/services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 SplashScreen.preventAutoHideAsync();
 
-export default function App() {
+function AppContent() {
+  const { t, isRTL, flexDir, tAlign, isLoaded: languageLoaded } = useLanguage();
   const [user, setUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('login');
   
@@ -126,17 +128,17 @@ export default function App() {
     }
   };
 
-  const renderHeader = (title, onBack) => (
-    <View style={styles.appHeader}>
+  const renderHeader = (titleKey, onBack) => (
+    <View style={[styles.appHeader, { flexDirection: flexDir }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <ArrowLeft color="#1e293b" size={24} />
+        <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
       </TouchableOpacity>
-      <Text style={styles.appTitle}>{title}</Text>
+      <Text style={[styles.appTitle, { textAlign: tAlign }]}>{t(titleKey)}</Text>
       <View style={{ width: 40 }} />
     </View>
   );
 
-  if (!appIsReady) return null;
+  if (!appIsReady || !languageLoaded) return null;
 
   return (
     <View style={styles.container}>
@@ -214,24 +216,24 @@ export default function App() {
             {user?.role === 'ROLE_MOUL7ANOUT' && (
                 <View style={styles.scannerOverlay}>
                     {selectedCustomer && (
-                        <View style={styles.customerBanner}>
+                        <View style={[styles.customerBanner, { flexDirection: flexDir }]}>
                             <User color="#fff" size={16} />
-                            <Text style={styles.customerBannerText}>CREDIT: {selectedCustomer.name}</Text>
+                            <Text style={styles.customerBannerText}>{t('scanner.scannerOverlayCredit', { name: selectedCustomer.name })}</Text>
                         </View>
                     )}
                     <TouchableOpacity 
-                        style={styles.floatingCart} 
+                        style={[styles.floatingCart, { flexDirection: flexDir }]} 
                         onPress={() => setCurrentScreen('cart')}
                     >
                         <ShoppingCart color="#fff" size={24} />
                         {salesCart.length > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{salesCart.length}</Text></View>}
-                        <Text style={styles.floatingCartText}>PANIER</Text>
+                        <Text style={styles.floatingCartText}>{t('scanner.scannerOverlayCart')}</Text>
                     </TouchableOpacity>
                 </View>
             )}
             <TouchableOpacity 
               onPress={handleLogout} 
-              style={[styles.logoutBtn, { top: Platform.OS === 'ios' ? 60 : 40 }]}
+              style={[styles.logoutBtn, { top: Platform.OS === 'ios' ? 60 : 40 }, isRTL ? { left: 20, right: 'auto' } : { right: 20, left: 'auto' }]}
             >
               <Power color="#fff" size={20} />
             </TouchableOpacity>
@@ -240,7 +242,7 @@ export default function App() {
 
       {currentScreen === 'form' && (
         <SafeAreaView style={{ flex: 1 }}>
-          {renderHeader('AJOUTER AU STOCK', () => setCurrentScreen('scanner'))}
+          {renderHeader('productForm.title', () => setCurrentScreen('scanner'))}
           <ProductForm 
             barcode={scannedBarcode} 
             token={user?.token}
@@ -265,6 +267,14 @@ export default function App() {
         />
       )}
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Dimensions, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { X, Zap, Scan, Package, CheckCircle } from 'lucide-react-native';
+import { useLanguage } from '../services/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = null }) => {
+    const { t, isRTL, flexDir } = useLanguage();
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [torch, setTorch] = useState(false);
@@ -37,7 +39,7 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator color="#4f46e5" size="large" />
-                <Text style={{ color: '#fff', marginTop: 10 }}>Initialisation...</Text>
+                <Text style={{ color: '#fff', marginTop: 10 }}>{t('scanner.initText')}</Text>
             </View>
         );
     }
@@ -46,10 +48,10 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
                 <Package size={64} color="#4f46e5" style={{ marginBottom: 20 }} />
-                <Text style={styles.permissionText}>Accès Caméra Requis</Text>
-                <Text style={styles.permissionSub}>Le scanner nécessite l'accès à votre caméra pour identifier les produits.</Text>
+                <Text style={styles.permissionText}>{t('scanner.permissionTitle')}</Text>
+                <Text style={styles.permissionSub}>{t('scanner.permissionDesc')}</Text>
                 <TouchableOpacity onPress={requestPermission} style={styles.button}>
-                    <Text style={styles.buttonText}>AUTORISER LA CAMÉRA</Text>
+                    <Text style={styles.buttonText}>{t('scanner.permissionBtn')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -57,11 +59,11 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
                     <X color="#fff" size={24} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{continuous ? 'Caisse - Scan Continu' : 'Inventaire - Scan Unique'}</Text>
+                <Text style={styles.headerTitle}>{continuous ? t('scanner.headerContinuous') : t('scanner.headerSingle')}</Text>
                 <TouchableOpacity onPress={() => setTorch(!torch)} style={styles.iconButton}>
                     <Zap color={torch ? "#fbbf24" : "#fff"} size={24} fill={torch ? "#fbbf24" : "none"} />
                 </TouchableOpacity>
@@ -79,34 +81,38 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
                 <View style={styles.overlay}>
                     {/* Feedback Toast */}
                     {lastAdded && (
-                        <View style={styles.toast}>
+                        <View style={[styles.toast, { flexDirection: flexDir }]}>
                             <CheckCircle size={18} color="#10b981" />
                             <Text style={styles.toastText}>{lastAdded}</Text>
                         </View>
                     )}
 
                     <View style={styles.unfocusedContainer}></View>
-                    <View style={styles.middleContainer}>
+                    <View style={[styles.middleContainer, { flexDirection: flexDir }]}>
                         <View style={styles.unfocusedContainer}></View>
                         <View style={styles.focusedContainer}>
                             <View style={[styles.corner, styles.topLeft]} />
                             <View style={[styles.corner, styles.topRight]} />
                             <View style={[styles.corner, styles.bottomLeft]} />
                             <View style={[styles.corner, styles.bottomRight]} />
-                            {scanned && <View style={styles.scannedOverlay}><Text style={styles.scannedText}>DÉTECTÉ!</Text></View>}
+                            {scanned && (
+                                <View style={styles.scannedOverlay}>
+                                    <Text style={styles.scannedText}>{t('scanner.scannedOverlay')}</Text>
+                                </View>
+                            )}
                         </View>
                         <View style={styles.unfocusedContainer}></View>
                     </View>
                     <View style={styles.unfocusedContainer}>
-                        <Text style={styles.instruction}>Maintenez le produit dans le cadre</Text>
+                        <Text style={styles.instruction}>{t('scanner.instructionText')}</Text>
                     </View>
                 </View>
             </CameraView>
 
             {scanned && (
-                <TouchableOpacity style={styles.rescanButton} onPress={() => setScanned(false)}>
+                <TouchableOpacity style={[styles.rescanButton, { flexDirection: flexDir }]} onPress={() => setScanned(false)}>
                     <Scan color="#fff" size={20} />
-                    <Text style={styles.rescanText}>SCANNER À NOUVEAU</Text>
+                    <Text style={styles.rescanText}>{t('scanner.rescanBtn')}</Text>
                 </TouchableOpacity>
             )}
         </SafeAreaView>

@@ -4,10 +4,12 @@ import { User, Lock, Eye, EyeOff, Store, ShieldCheck, Fingerprint, ScanFace } fr
 import axios from 'axios';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const LoginScreen = ({ onLogin }) => {
+    const { t, language, changeLanguage, isRTL, tAlign, flexDir } = useLanguage();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -56,8 +58,8 @@ const LoginScreen = ({ onLogin }) => {
         try {
             const isFaceId = biometricType === 'FACIAL_RECOGNITION';
             const result = await LocalAuthentication.authenticateAsync({
-                promptMessage: isFaceId ? 'Connexion avec FaceID' : 'Connexion avec empreinte digitale',
-                cancelLabel: 'Annuler',
+                promptMessage: isFaceId ? t('login.biometricsFace') : t('login.biometricsFingerprint'),
+                cancelLabel: t('common.cancel'),
                 disableDeviceFallback: false,
             });
 
@@ -82,14 +84,14 @@ const LoginScreen = ({ onLogin }) => {
                 await AsyncStorage.setItem('saved_credentials', JSON.stringify({ email: loginEmail, password: loginPassword }));
                 onLogin(response.data);
             } else {
-                setError('Accès non autorisé pour ce rôle.');
+                setError(t('login.errorUnauthorized'));
             }
         } catch (err) {
             console.error("Login Result:", err.message);
             if (!err.response) {
-                setError('Erreur réseau (vérifiez le serveur).');
+                setError(t('login.errorNetwork'));
             } else {
-                setError('Identifiants incorrects.');
+                setError(t('login.errorCredentials'));
             }
         } finally {
             setIsLoading(false);
@@ -98,7 +100,7 @@ const LoginScreen = ({ onLogin }) => {
 
     const handleLogin = () => {
         if (!email.trim() || !password.trim()) {
-            setError('Veuillez remplir tous les champs.');
+            setError(t('login.errorEmpty'));
             return;
         }
         performLogin(email, password);
@@ -111,24 +113,42 @@ const LoginScreen = ({ onLogin }) => {
                 style={styles.keyboardView}
             >
                 <View style={styles.content}>
+                    {/* Language Switcher */}
+                    <View style={[styles.langSwitcherContainer, { flexDirection: flexDir }]}>
+                        <TouchableOpacity 
+                            style={[styles.langBtn, language === 'fr' && styles.activeLangBtn]} 
+                            onPress={() => changeLanguage('fr')}
+                        >
+                            <Text style={styles.langEmoji}>🇫🇷</Text>
+                            <Text style={[styles.langText, language === 'fr' && styles.activeLangText]}>FR</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.langBtn, language === 'ar' && styles.activeLangBtn]} 
+                            onPress={() => changeLanguage('ar')}
+                        >
+                            <Text style={styles.langEmoji}>🇲🇦</Text>
+                            <Text style={[styles.langText, language === 'ar' && styles.activeLangText]}>العربية</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.logoCircle}>
                             <Store color="#4f46e5" size={36} />
                         </View>
                         <Text style={styles.logo}>7anoti</Text>
-                        <Text style={styles.tagline}>GESTION DE COMMERCE MOBILE</Text>
+                        <Text style={styles.tagline}>{t('login.tagline')}</Text>
                     </View>
 
                     {/* Form */}
                     <View style={styles.form}>
                         {/* Email Input */}
-                        <Text style={styles.label}>IDENTIFIANT (TÉLÉPHONE OU EMAIL)</Text>
-                        <View style={styles.inputContainer}>
-                            <User color="#94a3b8" size={20} style={styles.inputIcon} />
+                        <Text style={[styles.label, { textAlign: tAlign }]}>{t('login.identifier')}</Text>
+                        <View style={[styles.inputContainer, { flexDirection: flexDir }]}>
+                            <User color="#94a3b8" size={20} style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
                             <TextInput 
-                                style={styles.input} 
-                                placeholder="Ex: 0612345678 ou email" 
+                                style={[styles.input, { textAlign: tAlign }]} 
+                                placeholder={t('login.identifierPlaceholder')} 
                                 placeholderTextColor="#94a3b8"
                                 value={email} 
                                 onChangeText={setEmail}
@@ -138,11 +158,11 @@ const LoginScreen = ({ onLogin }) => {
                         </View>
 
                         {/* Password Input */}
-                        <Text style={styles.label}>MOT DE PASSE</Text>
-                        <View style={styles.inputContainer}>
-                            <Lock color="#94a3b8" size={20} style={styles.inputIcon} />
+                        <Text style={[styles.label, { textAlign: tAlign }]}>{t('login.password')}</Text>
+                        <View style={[styles.inputContainer, { flexDirection: flexDir }]}>
+                            <Lock color="#94a3b8" size={20} style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
                             <TextInput 
-                                style={styles.input} 
+                                style={[styles.input, { textAlign: tAlign }]} 
                                 placeholder="••••••••" 
                                 placeholderTextColor="#94a3b8"
                                 secureTextEntry={!showPassword} 
@@ -169,9 +189,9 @@ const LoginScreen = ({ onLogin }) => {
                         ) : null}
 
                         {/* Action buttons (Submit and Biometric Icon) */}
-                        <View style={styles.actionRow}>
+                        <View style={[styles.actionRow, { flexDirection: flexDir }]}>
                             <TouchableOpacity 
-                                style={[styles.button, { flex: 1 }, isBiometricAvailable && { marginRight: 10 }]} 
+                                style={[styles.button, { flex: 1 }, isBiometricAvailable && (isRTL ? { marginLeft: 10 } : { marginRight: 10 })]} 
                                 onPress={handleLogin} 
                                 disabled={isLoading}
                                 activeOpacity={0.8}
@@ -179,7 +199,7 @@ const LoginScreen = ({ onLogin }) => {
                                 {isLoading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <Text style={styles.buttonText}>SE CONNECTER</Text>
+                                    <Text style={styles.buttonText}>{t('login.connect')}</Text>
                                 )}
                             </TouchableOpacity>
 
@@ -201,9 +221,9 @@ const LoginScreen = ({ onLogin }) => {
                     </View>
 
                     {/* Footer */}
-                    <View style={styles.footer}>
+                    <View style={[styles.footer, { flexDirection: flexDir }]}>
                         <ShieldCheck color="#94a3b8" size={16} />
-                        <Text style={styles.footerText}>Connexion sécurisée par biométrie</Text>
+                        <Text style={styles.footerText}>{t('login.biometricsSecure')}</Text>
                     </View>
                 </View>
             </KeyboardAvoidingView>
@@ -300,7 +320,43 @@ const styles = StyleSheet.create({
         elevation: 4
     },
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 40 },
-    footerText: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold' }
+    footerText: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold' },
+    langSwitcherContainer: {
+        alignSelf: 'center',
+        backgroundColor: '#f1f5f9',
+        borderRadius: 20,
+        padding: 4,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    langBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 16,
+        gap: 6,
+    },
+    activeLangBtn: {
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    langEmoji: {
+        fontSize: 16,
+    },
+    langText: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#64748b',
+    },
+    activeLangText: {
+        color: '#1e293b',
+    },
 });
 
 export default LoginScreen;

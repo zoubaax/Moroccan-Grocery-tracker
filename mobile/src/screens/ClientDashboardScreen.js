@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, 
 import { Phone, MessageCircle, Receipt, LogOut, Calendar, ShoppingBag, CreditCard, DollarSign, ShieldAlert, CheckCircle2, User, Share2 } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
+import { useLanguage } from '../services/LanguageContext';
 
 const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
+    const { t, language, changeLanguage, isRTL, tAlign, flexDir } = useLanguage();
     const [profile, setProfile] = useState(user);
     const [purchases, setPurchases] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -94,18 +96,18 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
         } else if (formatted.startsWith('+')) {
             formatted = formatted.substring(1);
         }
-        const text = encodeURIComponent(`Salam ${shopkeeper.name}, je vous contacte concernant mes crédits et achats sur l'application 7anoti.`);
+        const text = encodeURIComponent(t('clientDashboard.waMessage', { name: shopkeeper.name }));
         Linking.openURL(`https://wa.me/${formatted}?text=${text}`);
     };
 
     const renderPurchaseItem = ({ item }) => (
         <View style={styles.purchaseCard}>
-            <View style={styles.cardHeader}>
-                <View style={styles.txnIdRow}>
+            <View style={[styles.cardHeader, { flexDirection: flexDir }]}>
+                <View style={[styles.txnIdRow, { flexDirection: flexDir }]}>
                     <Receipt size={16} color="#6366f1" />
-                    <Text style={styles.txnId}>Achat #{item.id}</Text>
+                    <Text style={styles.txnId}>{t('clientDashboard.purchaseNumber', { id: item.id })}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={[styles.txnIdRow, { flexDirection: flexDir, gap: 10 }]}>
                     <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
                     <TouchableOpacity 
                         onPress={() => handleGenerateReceipt(item)}
@@ -119,7 +121,7 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
             {/* List of items */}
             <View style={styles.txnItems}>
                 {item.items && item.items.map((saleItem, index) => (
-                    <View key={index} style={styles.txnItemRow}>
+                    <View key={index} style={[styles.txnItemRow, { flexDirection: flexDir }]}>
                         {saleItem.product?.imageUrl ? (
                             <Image source={{ uri: saleItem.product.imageUrl }} style={styles.productThumb} />
                         ) : (
@@ -127,9 +129,9 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
                                 <ShoppingBag size={12} color="#94a3b8" />
                             </View>
                         )}
-                        <View style={styles.productInfo}>
-                            <Text style={styles.productName} numberOfLines={1}>
-                                {saleItem.product?.name || 'Produit inconnu'}
+                        <View style={[styles.productInfo, { flexDirection: flexDir, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }]}>
+                            <Text style={[styles.productName, { textAlign: tAlign }]} numberOfLines={1}>
+                                {saleItem.product?.name || t('clientDashboard.productUnknown')}
                             </Text>
                             <Text style={styles.productQtyPrice}>
                                 {saleItem.quantity} x {saleItem.unitPrice?.toFixed(2)} DH
@@ -139,9 +141,9 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
                 ))}
             </View>
 
-            <View style={styles.cardFooter}>
+            <View style={[styles.cardFooter, { flexDirection: flexDir }]}>
                 <Text style={[styles.paymentMethod, item.paymentMethod === 'CREDIT' ? styles.badgeCredit : styles.badgeCash]}>
-                    {item.paymentMethod === 'CREDIT' ? 'CRÉDIT (CARNET)' : 'CASH / COMPTANT'}
+                    {item.paymentMethod === 'CREDIT' ? t('clientDashboard.paymentMethodCredit') : t('clientDashboard.paymentMethodCash')}
                 </Text>
                 <Text style={styles.totalText}>{item.totalAmount?.toFixed(2)} DH</Text>
             </View>
@@ -153,14 +155,19 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerTitleRow}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
+                <View style={[styles.headerTitleRow, { flexDirection: flexDir }]}>
                     <User size={20} color="#4f46e5" />
-                    <Text style={styles.headerTitle}>Mon Espace Client</Text>
+                    <Text style={styles.headerTitle}>{t('clientDashboard.title')}</Text>
                 </View>
-                <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
-                    <LogOut size={20} color="#ef4444" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => changeLanguage(language === 'fr' ? 'ar' : 'fr')} style={styles.langHeaderBtn}>
+                        <Text style={{ fontSize: 16 }}>{language === 'fr' ? '🇲🇦' : '🇫🇷'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+                        <LogOut size={20} color="#ef4444" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {isLoading ? (
@@ -179,56 +186,56 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
                     ListHeaderComponent={() => (
                         <View>
                             {/* Greeting */}
-                            <Text style={styles.greetingText}>Bonjour, {profile.name} 👋</Text>
-                            <Text style={styles.subGreetingText}>Retrouve ici ton solde et l'historique de tes achats.</Text>
+                            <Text style={[styles.greetingText, { textAlign: tAlign }]}>{t('clientDashboard.greeting', { name: profile.name })}</Text>
+                            <Text style={[styles.subGreetingText, { textAlign: tAlign }]}>{t('clientDashboard.subgreeting')}</Text>
 
                             {/* Balance Card */}
                             <View style={[styles.balanceCard, hasDebt ? styles.balanceCardRed : styles.balanceCardGreen]}>
-                                <View style={styles.balanceHeader}>
+                                <View style={[styles.balanceHeader, { flexDirection: flexDir }]}>
                                     {hasDebt ? (
                                         <ShieldAlert size={24} color="#b91c1c" />
                                     ) : (
                                         <CheckCircle2 size={24} color="#15803d" />
                                     )}
-                                    <Text style={[styles.balanceLabel, hasDebt ? styles.balanceLabelRed : styles.balanceLabelGreen]}>
-                                        {hasDebt ? 'CRÉDIT À RÉGLER (ARRIÉRÉS)' : 'COMPTE EN RÈGLE'}
+                                    <Text style={[styles.balanceLabel, hasDebt ? styles.balanceLabelRed : styles.balanceLabelGreen, { textAlign: tAlign }]}>
+                                        {hasDebt ? t('clientDashboard.balanceDue') : t('clientDashboard.balanceOk')}
                                     </Text>
                                 </View>
-                                <Text style={[styles.balanceAmount, hasDebt ? styles.balanceAmountRed : styles.balanceAmountGreen]}>
+                                <Text style={[styles.balanceAmount, hasDebt ? styles.balanceAmountRed : styles.balanceAmountGreen, { textAlign: tAlign }]}>
                                     {profile.currentBalance?.toFixed(2) || '0.00'} DH
                                 </Text>
-                                <Text style={[styles.balanceDesc, hasDebt ? styles.balanceDescRed : styles.balanceDescGreen]}>
+                                <Text style={[styles.balanceDesc, hasDebt ? styles.balanceDescRed : styles.balanceDescGreen, { textAlign: tAlign }]}>
                                     {hasDebt 
-                                        ? "Merci de régler ton solde auprès de l'épicier dès que possible." 
-                                        : "Tu n'as aucun crédit en cours chez l'épicier. Merci de ta fidélité !"}
+                                        ? t('clientDashboard.balanceDescDue') 
+                                        : t('clientDashboard.balanceDescOk')}
                                 </Text>
                             </View>
 
                             {/* Contact Shopkeeper Card */}
-                            <View style={styles.contactCard}>
-                                <Text style={styles.contactTitle}>Contacter mon épicier</Text>
-                                <Text style={styles.contactSub}>{shopkeeper.name} ({shopkeeper.phone})</Text>
-                                <View style={styles.contactButtons}>
-                                    <TouchableOpacity style={[styles.contactBtn, styles.callBtn]} onPress={handleCall}>
+                            <View style={[styles.contactCard, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                                <Text style={[styles.contactTitle, { textAlign: tAlign }]}>{t('clientDashboard.contactTitle')}</Text>
+                                <Text style={[styles.contactSub, { textAlign: tAlign }]}>{shopkeeper.name} ({shopkeeper.phone})</Text>
+                                <View style={[styles.contactButtons, { flexDirection: flexDir }]}>
+                                    <TouchableOpacity style={[styles.contactBtn, styles.callBtn, { flexDirection: flexDir }]} onPress={handleCall}>
                                         <Phone size={18} color="#4f46e5" />
-                                        <Text style={styles.callBtnText}>Appeler</Text>
+                                        <Text style={styles.callBtnText}>{t('clientDashboard.contactCall')}</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={[styles.contactBtn, styles.waBtn]} onPress={handleWhatsApp}>
+                                    <TouchableOpacity style={[styles.contactBtn, styles.waBtn, { flexDirection: flexDir }]} onPress={handleWhatsApp}>
                                         <MessageCircle size={18} color="#22c55e" />
-                                        <Text style={styles.waBtnText}>WhatsApp</Text>
+                                        <Text style={styles.waBtnText}>{t('clientDashboard.contactWa')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
                             {/* History Section Title */}
-                            <Text style={styles.sectionTitle}>Historique de mes achats ({purchases.length})</Text>
+                            <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>{t('clientDashboard.historyTitle', { count: purchases.length })}</Text>
                         </View>
                     )}
                     ListEmptyComponent={() => (
                         <View style={styles.emptyHistory}>
                             <ShoppingBag size={48} color="#cbd5e1" />
-                            <Text style={styles.emptyHistoryText}>Aucun achat enregistré pour le moment.</Text>
-                            <Text style={styles.emptyHistorySub}>Les achats à crédit ou payés au comptant apparaîtront ici.</Text>
+                            <Text style={styles.emptyHistoryText}>{t('clientDashboard.emptyHistory')}</Text>
+                            <Text style={styles.emptyHistorySub}>{t('clientDashboard.emptyHistorySub')}</Text>
                         </View>
                     )}
                 />
@@ -299,6 +306,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#ddd6fe'
+    },
+    langHeaderBtn: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+        backgroundColor: '#f1f5f9',
+        borderWidth: 1,
+        borderColor: '#e2e8f0'
     }
 });
 

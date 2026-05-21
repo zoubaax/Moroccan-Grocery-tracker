@@ -3,10 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Activi
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { Package, Tag, DollarSign, List, Barcode, Check, Camera, Image as ImageIcon } from 'lucide-react-native';
+import { useLanguage } from '../services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const ProductForm = ({ barcode, token, onComplete }) => {
+    const { t, isRTL, flexDir, tAlign } = useLanguage();
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [quantity, setQuantity] = useState('');
@@ -29,7 +31,7 @@ const ProductForm = ({ barcode, token, onComplete }) => {
 
     const handleSubmit = async () => {
         if (!name || !price || !quantity) {
-            alert('Veuillez remplir tous les champs obligatoires.');
+            alert(t('productForm.errorEmpty'));
             return;
         }
 
@@ -59,11 +61,11 @@ const ProductForm = ({ barcode, token, onComplete }) => {
                     'Authorization': `Bearer ${token}` 
                 }
             });
-            alert('Produit ajouté au stock!');
+            alert(t('productForm.success'));
             onComplete();
         } catch (error) {
             console.error("Upload Error:", error.response?.data || error.message);
-            alert('Erreur lors de l’ajout.');
+            alert(t('productForm.errorSave'));
         } finally {
             setIsLoading(false);
         }
@@ -84,48 +86,48 @@ const ProductForm = ({ barcode, token, onComplete }) => {
                         ) : (
                             <View style={styles.imagePlaceholder}>
                                 <Camera color="#94a3b8" size={32} />
-                                <Text style={styles.imageLabel}>AJOUTER PHOTO</Text>
+                                <Text style={styles.imageLabel}>{t('productForm.addPhoto')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
 
-                    <View style={styles.header}>
+                    <View style={[styles.header, { flexDirection: flexDir }]}>
                         <View style={styles.barcodeIcon}>
                             <Barcode color="#4f46e5" size={24} />
                         </View>
-                        <View>
-                            <Text style={styles.headerTitle}>BARCODE DÉTECTÉ</Text>
+                        <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                            <Text style={styles.headerTitle}>{t('productForm.barcodeDetected')}</Text>
                             <Text style={styles.barcodeText}>{barcode}</Text>
                         </View>
                     </View>
 
                     <View style={styles.form}>
                         <View style={styles.field}>
-                            <Text style={styles.label}>NOM DU PRODUIT</Text>
+                            <Text style={[styles.label, { textAlign: tAlign }]}>{t('productForm.name')}</Text>
                             <TextInput 
-                                style={styles.input} 
-                                placeholder="Ex: Fromage La Vache Quirit" 
+                                style={[styles.input, { textAlign: tAlign }]} 
+                                placeholder={t('productForm.placeholderName')} 
                                 value={name} 
                                 onChangeText={setName} 
                                 returnKeyType="next"
                             />
                         </View>
 
-                        <View style={styles.row}>
+                        <View style={[styles.row, { flexDirection: flexDir }]}>
                             <View style={[styles.field, { flex: 1 }]}>
-                                <Text style={styles.label}>PRIX (MAD)</Text>
+                                <Text style={[styles.label, { textAlign: tAlign }]}>{t('productForm.priceLabel')}</Text>
                                 <TextInput 
-                                    style={styles.input} 
+                                    style={[styles.input, { textAlign: tAlign }]} 
                                     placeholder="0.00" 
                                     keyboardType="numeric" 
                                     value={price} 
                                     onChangeText={setPrice} 
                                 />
                             </View>
-                            <View style={[styles.field, { flex: 1, marginLeft: 15 }]}>
-                                <Text style={styles.label}>STOCK INIT</Text>
+                            <View style={[styles.field, { flex: 1, marginLeft: isRTL ? 0 : 15, marginRight: isRTL ? 15 : 0 }]}>
+                                <Text style={[styles.label, { textAlign: tAlign }]}>{t('productForm.qtyLabel')}</Text>
                                 <TextInput 
-                                    style={styles.input} 
+                                    style={[styles.input, { textAlign: tAlign }]} 
                                     placeholder="0" 
                                     keyboardType="numeric" 
                                     value={quantity} 
@@ -135,17 +137,17 @@ const ProductForm = ({ barcode, token, onComplete }) => {
                         </View>
 
                         <View style={styles.field}>
-                            <Text style={styles.label}>CATÉGORIE MOBILE</Text>
-                            <View style={styles.input}>
+                            <Text style={[styles.label, { textAlign: tAlign }]}>{t('productForm.categoryLabel')}</Text>
+                            <View style={[styles.input, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                                 <Text style={{ color: '#1e293b', fontWeight: 'bold' }}>{category}</Text>
                             </View>
                         </View>
 
-                        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                        <TouchableOpacity style={[styles.submitButton, { flexDirection: flexDir }]} onPress={handleSubmit} disabled={isLoading}>
                             {isLoading ? <ActivityIndicator color="#fff" /> : (
                                 <>
                                     <Check color="#fff" size={20} />
-                                    <Text style={styles.submitText}>VALIDER L'INVENTAIRE</Text>
+                                    <Text style={styles.submitText}>{t('productForm.submitText')}</Text>
                                 </>
                             )}
                         </TouchableOpacity>

@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Activity
 import { ArrowLeft, Phone, CreditCard, Calendar, ShoppingBag, DollarSign, Receipt, Share2, Bot } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
+import { useLanguage } from '../services/LanguageContext';
 
 const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
+    const { t, language, isRTL, flexDir, tAlign } = useLanguage();
     const [currentCustomer, setCurrentCustomer] = useState(customer);
     const [transactions, setTransactions] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -43,7 +45,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
 
     const handleSendAIReminder = async (type = 'whatsapp') => {
         if (!currentCustomer.phone) {
-            Alert.alert("Erreur", "Ce client n'a pas de numéro de téléphone.");
+            Alert.alert(t('common.error'), t('customerDetail.errorNoPhone'));
             return;
         }
         
@@ -56,7 +58,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
         
         const webhookUrl = process.env.EXPO_PUBLIC_N8N_WEBHOOK_URL;
         if (!webhookUrl) {
-            Alert.alert("Erreur", "L'URL du Webhook n8n n'est pas configurée dans .env.");
+            Alert.alert(t('common.error'), t('customerDetail.errorWebhook'));
             return;
         }
 
@@ -76,13 +78,13 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
             });
 
             if (type === 'whatsapp') {
-                Alert.alert("Succès", "Rappel envoyé via WhatsApp par l'IA !");
+                Alert.alert(t('common.success'), t('customerDetail.aiReminderSuccess'));
             } else {
-                Alert.alert("Succès", "Appel vocal IA lancé ! Le téléphone du client va sonner.");
+                Alert.alert(t('common.success'), t('customerDetail.aiReminderCallSuccess'));
             }
         } catch (err) {
             console.error("Error sending reminder:", err);
-            Alert.alert("Erreur", "Impossible d'initier le rappel.");
+            Alert.alert(t('common.error'), t('customerDetail.aiReminderLaunchError'));
         } finally {
             setIsReminderLoading(false);
             setIsCallLoading(false);
@@ -91,7 +93,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
 
     const handleShareCredentials = async () => {
         if (!currentCustomer.phone) {
-            Alert.alert("Erreur", "Ce client n'a pas de numéro de téléphone enregistré.");
+            Alert.alert(t('common.error'), t('customerDetail.errorNoPhoneSaved'));
             return;
         }
 
@@ -102,7 +104,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
             formattedPhone = formattedPhone.substring(1);
         }
 
-        const message = `Salam ${currentCustomer.name} 👋\n\nVoici tes identifiants pour te connecter à l'application *7anoti* et suivre tes crédits et tes achats :\n\n📱 *Identifiant* : ${currentCustomer.phone.trim()}\n🔑 *Mot de passe* : client123`;
+        const message = t('customerDetail.whatsappMsg', { name: currentCustomer.name, phone: currentCustomer.phone.trim() });
         const encodedMsg = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMsg}`;
 
@@ -111,18 +113,18 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
             if (supported) {
                 await Linking.openURL(whatsappUrl);
             } else {
-                Alert.alert("Erreur", "WhatsApp n'est pas installé sur cet appareil.");
+                Alert.alert(t('common.error'), t('customerDetail.whatsappNotInstalled'));
             }
         } catch (err) {
             console.error("Error opening WhatsApp:", err);
-            Alert.alert("Erreur", "Impossible d'ouvrir WhatsApp.");
+            Alert.alert(t('common.error'), t('customerDetail.whatsappOpenError'));
         }
     };
 
     const handlePayment = async () => {
         const amount = parseFloat(paymentAmount);
         if (isNaN(amount) || amount <= 0) {
-            Alert.alert("Erreur", "Veuillez entrer un montant valide supérieur à 0.");
+            Alert.alert(t('common.error'), t('customerDetail.payAmountError'));
             return;
         }
 
@@ -136,15 +138,15 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 }
             });
 
-            Alert.alert("Succès", response.data.message || "Paiement enregistré !");
+            Alert.alert(t('common.success'), response.data.message || t('customerDetail.paySuccess'));
             setPaymentAmount('');
             
             // Reload details to get new balance and history
             await fetchHistoryAndDetails();
         } catch (err) {
             console.error(err);
-            const errMsg = err.response?.data?.message || "Échec de l'enregistrement du paiement.";
-            Alert.alert("Erreur", errMsg);
+            const errMsg = err.response?.data?.message || t('customerDetail.payError');
+            Alert.alert(t('common.error'), errMsg);
         } finally {
             setIsPaymentLoading(false);
         }
@@ -172,10 +174,10 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
 
     const renderTransactionItem = ({ item }) => (
         <View style={styles.txnCard}>
-            <View style={styles.txnHeader}>
-                <View style={styles.txnIdRow}>
-                    <Receipt size={14} color="#64748b" />
-                    <Text style={styles.txnId}>Achat #{item.id}</Text>
+            <View style={[styles.txnHeader, { flexDirection: flexDir }]}>
+                <View style={[styles.txnIdRow, { flexDirection: flexDir, gap: 4 }]}>
+                    <Receipt size={14} color="#64748b" style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }} />
+                    <Text style={styles.txnId}>{t('clientDashboard.purchaseNumber', { id: item.id })}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Text style={styles.txnDate}>{formatDate(item.transactionDate)}</Text>
@@ -191,7 +193,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
             {/* List of items */}
             <View style={styles.txnItems}>
                 {item.items && item.items.map((saleItem, index) => (
-                    <View key={index} style={styles.txnItemRow}>
+                    <View key={index} style={[styles.txnItemRow, { flexDirection: flexDir }]}>
                         {saleItem.product?.imageUrl ? (
                             <Image source={{ uri: saleItem.product.imageUrl }} style={styles.txnProductThumb} />
                         ) : (
@@ -199,9 +201,9 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                                 <ShoppingBag size={12} color="#94a3b8" />
                             </View>
                         )}
-                        <View style={styles.txnProductInfo}>
-                            <Text style={styles.txnItemText} numberOfLines={1}>
-                                {saleItem.product?.name || 'Produit inconnu'}
+                        <View style={[styles.txnProductInfo, { flexDirection: flexDir, marginLeft: isRTL ? 0 : 8, marginRight: isRTL ? 8 : 0 }]}>
+                            <Text style={[styles.txnItemText, { textAlign: tAlign }]} numberOfLines={1}>
+                                {saleItem.product?.name || t('clientDashboard.productUnknown')}
                             </Text>
                             <Text style={styles.txnItemQty}>
                                 {saleItem.quantity} x {saleItem.unitPrice?.toFixed(2)} DH
@@ -211,9 +213,9 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 ))}
             </View>
 
-            <View style={styles.txnFooter}>
+            <View style={[styles.txnFooter, { flexDirection: flexDir }]}>
                 <Text style={[styles.methodBadge, item.paymentMethod === 'CREDIT' ? styles.badgeCredit : styles.badgeCash]}>
-                    {item.paymentMethod}
+                    {item.paymentMethod === 'CREDIT' ? t('clientDashboard.paymentMethodCredit') : t('clientDashboard.paymentMethodCash')}
                 </Text>
                 <Text style={styles.txnTotal}>{item.totalAmount?.toFixed(2)} DH</Text>
             </View>
@@ -225,11 +227,11 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#1e293b" size={24} />
+                    <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Fiche Client</Text>
+                <Text style={styles.title}>{t('customerDetail.title')}</Text>
                 <View style={{ width: 44 }} />
             </View>
 
@@ -239,15 +241,15 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                     <Text style={styles.avatarLargeText}>{currentCustomer.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <Text style={styles.profileName}>{currentCustomer.name}</Text>
-                <View style={styles.profilePhoneRow}>
-                    <Phone size={14} color="#94a3b8" />
-                    <Text style={styles.profilePhone}>{currentCustomer.phone || 'Pas de numéro'}</Text>
+                <View style={[styles.profilePhoneRow, { flexDirection: flexDir }]}>
+                    <Phone size={14} color="#94a3b8" style={isRTL ? { marginLeft: 6 } : { marginRight: 6 }} />
+                    <Text style={styles.profilePhone}>{currentCustomer.phone || t('customerDetail.noPhone')}</Text>
                 </View>
 
                 {/* Balance Badge */}
                 <View style={[styles.balanceSection, hasDebt ? styles.balanceSecRed : styles.balanceSecGreen]}>
                     <Text style={[styles.balanceSecLabel, hasDebt ? styles.balanceSecLabelRed : styles.balanceSecLabelGreen]}>
-                        {hasDebt ? 'DETTE ACTUELLE' : 'PAS DE DETTE'}
+                        {hasDebt ? t('customerDetail.outstandingDebt') : t('customerDetail.noCredit')}
                     </Text>
                     <Text style={[styles.balanceSecValue, hasDebt ? styles.balanceSecValueRed : styles.balanceSecValueGreen]}>
                         {currentCustomer.currentBalance?.toFixed(2) || '0.00'} DH
@@ -257,17 +259,17 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 {currentCustomer.phone ? (
                     <View style={{ width: '100%' }}>
                         <TouchableOpacity 
-                            style={[styles.shareCredentialsBtn, { width: '100%', justifyContent: 'center' }]}
+                            style={[styles.shareCredentialsBtn, { width: '100%', justifyContent: 'center', flexDirection: flexDir }]}
                             onPress={handleShareCredentials}
                         >
-                            <Share2 size={16} color="#4f46e5" />
-                            <Text style={styles.shareCredentialsText}>Accorder Accès Application</Text>
+                            <Share2 size={16} color="#4f46e5" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
+                            <Text style={styles.shareCredentialsText}>{t('customerDetail.grantAppAccess')}</Text>
                         </TouchableOpacity>
 
                         {hasDebt && (
-                            <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 10 }}>
+                            <View style={{ flexDirection: flexDir, gap: 10, width: '100%', marginTop: 10 }}>
                                 <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center' }]}
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center', flexDirection: flexDir }]}
                                     onPress={() => handleSendAIReminder('whatsapp')}
                                     disabled={isReminderLoading}
                                 >
@@ -275,14 +277,14 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                                         <ActivityIndicator size="small" color="#ef4444" />
                                     ) : (
                                         <>
-                                            <Bot size={16} color="#ef4444" />
-                                            <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>WhatsApp IA</Text>
+                                            <Bot size={16} color="#ef4444" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
+                                            <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>{t('customerDetail.whatsappAi')}</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
 
                                 <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center' }]}
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center', flexDirection: flexDir }]}
                                     onPress={() => handleSendAIReminder('call')}
                                     disabled={isCallLoading}
                                 >
@@ -290,8 +292,8 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                                         <ActivityIndicator size="small" color="#22c55e" />
                                     ) : (
                                         <>
-                                            <Phone size={16} color="#22c55e" />
-                                            <Text style={[styles.shareCredentialsText, { color: '#22c55e' }]}>Appel IA</Text>
+                                            <Phone size={16} color="#22c55e" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
+                                            <Text style={[styles.shareCredentialsText, { color: '#22c55e' }]}>{t('customerDetail.callAi')}</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
@@ -303,15 +305,15 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
 
             {/* Payment Section (Pay Credit) */}
             <View style={styles.paymentCard}>
-                <Text style={styles.cardTitle}>Enregistrer un Remboursement</Text>
-                <View style={styles.payInputRow}>
+                <Text style={[styles.cardTitle, { textAlign: tAlign }]}>{t('customerDetail.payTitle')}</Text>
+                <View style={[styles.payInputRow, { flexDirection: flexDir }]}>
                     <TextInput 
-                        style={styles.payInput}
-                        placeholder="Montant payé (MAD)"
-                        placeholderTextColor="#cbd5e1"
-                        value={paymentAmount}
-                        onChangeText={setPaymentAmount}
-                        keyboardType="numeric"
+                       style={[styles.payInput, { textAlign: tAlign }]}
+                       placeholder={t('customerDetail.payPlaceholder')}
+                       placeholderTextColor="#cbd5e1"
+                       value={paymentAmount}
+                       onChangeText={setPaymentAmount}
+                       keyboardType="numeric"
                     />
                     <TouchableOpacity 
                         style={[styles.payBtn, isPaymentLoading && styles.disabled]}
@@ -321,14 +323,16 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                         {isPaymentLoading ? (
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
-                            <Text style={styles.payBtnText}>Valider</Text>
+                            <Text style={styles.payBtnText}>{t('customerDetail.validateBtn')}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
             </View>
 
             {/* History Title */}
-            <Text style={styles.historySectionTitle}>Historique d'Achats ({transactions.length})</Text>
+            <Text style={[styles.historySectionTitle, { textAlign: tAlign }]}>
+                {t('customerDetail.historyTitleCount', { count: transactions.length })}
+            </Text>
 
             {/* Purchases List */}
             <FlatList 
@@ -345,7 +349,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                         ) : (
                             <>
                                 <ShoppingBag size={40} color="#cbd5e1" />
-                                <Text style={styles.emptyHistoryText}>Aucun achat enregistré</Text>
+                                <Text style={styles.emptyHistoryText}>{t('clientDashboard.emptyHistory')}</Text>
                             </>
                         )}
                     </View>

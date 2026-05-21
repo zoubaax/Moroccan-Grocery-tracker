@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Platform, Keyboard } from 'react-native';
 import { Search, User, Phone, CheckCircle2, ChevronRight, ArrowLeft, UserPlus } from 'lucide-react-native';
 import axios from 'axios';
+import { useLanguage } from '../services/LanguageContext';
 
 const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, mode }) => {
+    const { t, language, isRTL, flexDir, tAlign } = useLanguage();
     const [query, setQuery] = useState('');
     const [allCustomers, setAllCustomers] = useState([]);
     const [filteredCustomers, setFilteredCustomers] = useState([]);
@@ -47,7 +49,7 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
         const hasDebt = item.currentBalance > 0;
         return (
             <TouchableOpacity 
-                style={styles.resultItem} 
+                style={[styles.resultItem, { flexDirection: flexDir }]} 
                 onPress={() => {
                     Keyboard.dismiss();
                     onSelect(item);
@@ -56,45 +58,47 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
                 </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    <View style={styles.phoneRow}>
+                <View style={[styles.info, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 15, marginRight: isRTL ? 15 : 0 }]}>
+                    <Text style={[styles.name, { textAlign: tAlign }]}>{item.name}</Text>
+                    <View style={[styles.phoneRow, { flexDirection: flexDir, gap: 4 }]}>
                         <Phone size={12} color="#94a3b8" />
-                        <Text style={styles.phone}>{item.phone || 'Pas de numéro'}</Text>
+                        <Text style={[styles.phone, { textAlign: tAlign }]}>
+                            {item.phone ? t('customerSearch.phone', { phone: item.phone }) : (language === 'fr' ? 'Pas de numéro' : 'لا يوجد رقم')}
+                        </Text>
                     </View>
                 </View>
                 <View style={[styles.balanceBox, hasDebt ? styles.balanceBoxRed : styles.balanceBoxGreen]}>
                     <Text style={[styles.balanceLabel, hasDebt ? styles.balanceLabelRed : styles.balanceLabelGreen]}>
-                        {hasDebt ? 'DETTE' : 'SOLDE'}
+                        {hasDebt ? t('customerDetail.typeDebt') : (language === 'fr' ? 'SOLDE' : 'رصيد')}
                     </Text>
                     <Text style={[styles.balanceValue, hasDebt ? styles.balanceValueRed : styles.balanceValueGreen]}>
                         {item.currentBalance?.toFixed(2) || '0.00'} DH
                     </Text>
                 </View>
-                <ChevronRight color="#cbd5e1" size={20} />
+                <ChevronRight color="#cbd5e1" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
             </TouchableOpacity>
         );
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#1e293b" size={24} />
+                    <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
                 <Text style={styles.title}>
-                    {mode === 'select' ? "CHOISIR LE CLIENT" : "CARNET DE CREDIT"}
+                    {mode === 'select' ? t('customerSearch.title') : t('customerSearch.titleManage')}
                 </Text>
                 <TouchableOpacity onPress={onAddCustomer} style={styles.addBtn}>
                     <UserPlus color="#4f46e5" size={24} />
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.searchContainer}>
-                <Search color="#94a3b8" size={18} style={styles.searchIcon} />
+            <View style={[styles.searchContainer, { flexDirection: flexDir }]}>
+                <Search color="#94a3b8" size={18} style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
                 <TextInput 
-                    style={styles.input}
-                    placeholder="Chercher par nom ou téléphone..."
+                    style={[styles.input, { textAlign: tAlign }]}
+                    placeholder={t('customerSearch.placeholder')}
                     placeholderTextColor="#94a3b8"
                     value={query}
                     onChangeText={handleSearch}
@@ -110,7 +114,9 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                 refreshing={isLoading}
                 onRefresh={fetchCustomers}
                 ListHeaderComponent={() => query.length > 0 && filteredCustomers.length > 0 ? (
-                    <Text style={styles.listHeader}>RÉSULTATS TROUVÉS ({filteredCustomers.length})</Text>
+                    <Text style={[styles.listHeader, { textAlign: tAlign }]}>
+                        {language === 'fr' ? `RÉSULTATS TROUVÉS (${filteredCustomers.length})` : `النتائج الموجودة (${filteredCustomers.length})`}
+                    </Text>
                 ) : null}
                 ListEmptyComponent={() => (
                     <View style={styles.empty}>
@@ -119,8 +125,8 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                         ) : (
                             <>
                                 <UserPlus size={48} color="#f1f5f9" />
-                                <Text style={styles.emptyText}>Aucun client trouvé</Text>
-                                <Text style={styles.emptySub}>Ajoutez-en un en cliquant sur le bouton +</Text>
+                                <Text style={styles.emptyText}>{t('customerSearch.empty')}</Text>
+                                <Text style={styles.emptySub}>{t('customerSearch.emptySub')}</Text>
                             </>
                         )}
                     </View>

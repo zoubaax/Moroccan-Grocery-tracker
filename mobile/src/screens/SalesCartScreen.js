@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft, Smartphone, Users } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
+import { useLanguage } from '../services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete, onBack, selectedCustomer, onChooseCustomer }) => {
+    const { t, isRTL, flexDir, tAlign } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState(selectedCustomer ? 'CREDIT' : 'CASH');
 
@@ -67,32 +69,32 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
             };
 
             Alert.alert(
-                "Succès",
-                `Vente terminée ! Total: ${total.toFixed(2)} DH`,
+                t('common.success'),
+                t('cart.checkoutSuccess', { total: total.toFixed(2) }),
                 [
                     {
-                        text: "Générer Reçu PDF",
+                        text: t('cart.receiptBtn'),
                         onPress: async () => {
                             await generateAndShareReceipt(mockSale);
                             onComplete();
                         }
                     },
                     {
-                        text: "Terminer",
+                        text: t('cart.completeBtn'),
                         onPress: () => onComplete()
                     }
                 ]
             );
         } catch (err) {
             console.error(err);
-            Alert.alert("Erreur", err.response?.data?.message || "Échec de la transaction.");
+            Alert.alert(t('common.error'), err.response?.data?.message || t('cart.checkoutError'));
         } finally {
             setIsLoading(false);
         }
     };
 
     const renderItem = ({ item }) => (
-        <View style={styles.itemCard}>
+        <View style={[styles.itemCard, { flexDirection: flexDir }]}>
             {item.imageUrl ? (
                 <Image source={{ uri: item.imageUrl }} style={styles.productThumb} />
             ) : (
@@ -100,13 +102,13 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
                     <ShoppingBag size={20} color="#94a3b8" />
                 </View>
             )}
-            <View style={styles.itemInfo}>
-                <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+            <View style={[styles.itemInfo, { marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0, alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <Text style={[styles.itemName, { textAlign: tAlign }]} numberOfLines={2}>{item.name}</Text>
                 <Text style={styles.itemBarcode}>{item.barcode}</Text>
                 <Text style={styles.itemPrice}>{item.price} DH</Text>
             </View>
-            <View style={styles.itemActions}>
-                <View style={styles.qtyControl}>
+            <View style={[styles.itemActions, { alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
+                <View style={[styles.qtyControl, { flexDirection: flexDir }]}>
                     <TouchableOpacity onPress={() => updateQty(item.id, -1)} style={styles.qtyBtn}>
                         <Minus size={16} color="#4f46e5" />
                     </TouchableOpacity>
@@ -124,13 +126,13 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.headerIcon}>
-                    <ChevronLeft size={24} color="#1e293b" />
+                    <ChevronLeft size={24} color="#1e293b" style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
-                <Text style={styles.title}>PANIER DE VENTE</Text>
+                <Text style={styles.title}>{t('cart.checkoutTitle')}</Text>
                 <TouchableOpacity onPress={onClear}>
-                    <Text style={styles.clearText}>VIDER</Text>
+                    <Text style={styles.clearText}>{t('cart.clearText')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -142,38 +144,38 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
                 ListEmptyComponent={
                     <View style={styles.empty}>
                         <ShoppingBag size={64} color="#e2e8f0" />
-                        <Text style={styles.emptyText}>Bip bip ! Scannez des produits.</Text>
+                        <Text style={styles.emptyText}>{t('cart.emptyText')}</Text>
                     </View>
                 }
             />
 
             <View style={styles.footer}>
                 {selectedCustomer && (
-                    <View style={styles.customerCartBanner}>
-                        <View style={styles.customerCartBannerInfo}>
+                    <View style={[styles.customerCartBanner, { flexDirection: flexDir }]}>
+                        <View style={[styles.customerCartBannerInfo, { flexDirection: flexDir, gap: 8 }]}>
                             <Users size={16} color="#4f46e5" />
-                            <Text style={styles.customerCartBannerText}>Client: {selectedCustomer.name}</Text>
+                            <Text style={styles.customerCartBannerText}>{t('cart.customerLabel', { name: selectedCustomer.name })}</Text>
                         </View>
                         <TouchableOpacity onPress={onChooseCustomer} style={styles.changeCustomerBtn}>
-                            <Text style={styles.changeCustomerText}>Changer</Text>
+                            <Text style={styles.changeCustomerText}>{t('cart.changeText')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <View style={styles.paymentSection}>
+                <View style={[styles.paymentSection, { flexDirection: flexDir }]}>
                     <TouchableOpacity 
                         onPress={() => setPaymentMethod('CASH')}
-                        style={[styles.payBtn, paymentMethod === 'CASH' && styles.payBtnActive]}
+                        style={[styles.payBtn, paymentMethod === 'CASH' && styles.payBtnActive, { flexDirection: flexDir }]}
                     >
                         <Banknote size={20} color={paymentMethod === 'CASH' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CASH' && styles.payTextActive]}>CASH</Text>
+                        <Text style={[styles.payText, paymentMethod === 'CASH' && styles.payTextActive]}>{t('cart.cashLabel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         onPress={() => setPaymentMethod('CARD')}
-                        style={[styles.payBtn, paymentMethod === 'CARD' && styles.payBtnActive]}
+                        style={[styles.payBtn, paymentMethod === 'CARD' && styles.payBtnActive, { flexDirection: flexDir }]}
                     >
                         <CreditCard size={20} color={paymentMethod === 'CARD' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CARD' && styles.payTextActive]}>CARTE</Text>
+                        <Text style={[styles.payText, paymentMethod === 'CARD' && styles.payTextActive]}>{t('cart.cardLabel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         onPress={() => {
@@ -183,27 +185,27 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
                                 setPaymentMethod('CREDIT');
                             }
                         }}
-                        style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive]}
+                        style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive, { flexDirection: flexDir }]}
                     >
                         <Users size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>CREDIT</Text>
+                        <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>{t('cart.creditLabel')}</Text>
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>TOTAL À PAYER</Text>
+                <View style={[styles.totalRow, { flexDirection: flexDir }]}>
+                    <Text style={styles.totalLabel}>{t('cart.total')}</Text>
                     <Text style={styles.totalValue}>{total.toFixed(2)} DH</Text>
                 </View>
 
                 <TouchableOpacity 
-                    style={[styles.checkoutBtn, (cart.length === 0 || isLoading) && styles.disabled]} 
+                    style={[styles.checkoutBtn, (cart.length === 0 || isLoading) && styles.disabled, { flexDirection: flexDir }]} 
                     onPress={handleCheckout}
                     disabled={cart.length === 0 || isLoading}
                 >
                     {isLoading ? <ActivityIndicator color="#fff" /> : (
                         <>
                             <CheckCircle size={22} color="#fff" />
-                            <Text style={styles.checkoutText}>VALIDER LA VENTE</Text>
+                            <Text style={styles.checkoutText}>{t('cart.checkoutBtn')}</Text>
                         </>
                     )}
                 </TouchableOpacity>
