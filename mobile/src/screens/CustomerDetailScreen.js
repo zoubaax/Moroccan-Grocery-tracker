@@ -10,6 +10,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
     const [isReminderLoading, setIsReminderLoading] = useState(false);
+    const [isCallLoading, setIsCallLoading] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
 
     const fetchHistoryAndDetails = async () => {
@@ -40,7 +41,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
         fetchHistoryAndDetails();
     }, []);
 
-    const handleSendAIReminder = async () => {
+    const handleSendAIReminder = async (type = 'whatsapp') => {
         if (!currentCustomer.phone) {
             Alert.alert("Erreur", "Ce client n'a pas de numéro de téléphone.");
             return;
@@ -59,9 +60,14 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
             return;
         }
 
-        setIsReminderLoading(true);
+        if (type === 'whatsapp') {
+            setIsReminderLoading(true);
+        } else {
+            setIsCallLoading(true);
+        }
         try {
             await axios.post(webhookUrl, {
+                type,
                 clientName: currentCustomer.name,
                 clientPhone: formattedPhone,
                 amount: currentCustomer.currentBalance,
@@ -69,12 +75,17 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 shopName: "Épicerie 7anoti"
             });
 
-            Alert.alert("Succès", "Rappel envoyé via WhatsApp par l'IA !");
+            if (type === 'whatsapp') {
+                Alert.alert("Succès", "Rappel envoyé via WhatsApp par l'IA !");
+            } else {
+                Alert.alert("Succès", "Appel vocal IA lancé ! Le téléphone du client va sonner.");
+            }
         } catch (err) {
             console.error("Error sending reminder:", err);
-            Alert.alert("Erreur", "Impossible d'envoyer le rappel.");
+            Alert.alert("Erreur", "Impossible d'initier le rappel.");
         } finally {
             setIsReminderLoading(false);
+            setIsCallLoading(false);
         }
     };
 
@@ -244,30 +255,47 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                 </View>
 
                 {currentCustomer.phone ? (
-                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 15, width: '100%' }}>
+                    <View style={{ width: '100%' }}>
                         <TouchableOpacity 
-                            style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, justifyContent: 'center' }]}
+                            style={[styles.shareCredentialsBtn, { width: '100%', justifyContent: 'center' }]}
                             onPress={handleShareCredentials}
                         >
                             <Share2 size={16} color="#4f46e5" />
-                            <Text style={styles.shareCredentialsText}>Accès App</Text>
+                            <Text style={styles.shareCredentialsText}>Accorder Accès Application</Text>
                         </TouchableOpacity>
 
                         {hasDebt && (
-                            <TouchableOpacity 
-                                style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center' }]}
-                                onPress={handleSendAIReminder}
-                                disabled={isReminderLoading}
-                            >
-                                {isReminderLoading ? (
-                                    <ActivityIndicator size="small" color="#ef4444" />
-                                ) : (
-                                    <>
-                                        <Bot size={16} color="#ef4444" />
-                                        <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>Rappel IA</Text>
-                                    </>
-                                )}
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 10 }}>
+                                <TouchableOpacity 
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center' }]}
+                                    onPress={() => handleSendAIReminder('whatsapp')}
+                                    disabled={isReminderLoading}
+                                >
+                                    {isReminderLoading ? (
+                                        <ActivityIndicator size="small" color="#ef4444" />
+                                    ) : (
+                                        <>
+                                            <Bot size={16} color="#ef4444" />
+                                            <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>WhatsApp IA</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity 
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center' }]}
+                                    onPress={() => handleSendAIReminder('call')}
+                                    disabled={isCallLoading}
+                                >
+                                    {isCallLoading ? (
+                                        <ActivityIndicator size="small" color="#22c55e" />
+                                    ) : (
+                                        <>
+                                            <Phone size={16} color="#22c55e" />
+                                            <Text style={[styles.shareCredentialsText, { color: '#22c55e' }]}>Appel IA</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
                         )}
                     </View>
                 ) : null}
