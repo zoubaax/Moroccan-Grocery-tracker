@@ -38,3 +38,7 @@ build/
 
 ### Secrets ###
 .env
+
+### Local Only Docs ###
+TECH_STACK.md
+DIAGRAMS.md
