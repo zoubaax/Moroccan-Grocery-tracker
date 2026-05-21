@@ -228,8 +228,8 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <TouchableOpacity onPress={onBack} style={[styles.backBtn, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                    <ArrowLeft color="#1e293b" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.title}>{t('customerDetail.title')}</Text>
                 <View style={{ width: 44 }} />

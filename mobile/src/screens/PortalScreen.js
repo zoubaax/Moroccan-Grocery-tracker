@@ -69,8 +69,8 @@ const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
                             <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.caisseDesc')}</Text>
                         </View>
                     </View>
-                    <View style={styles.arrowCircle}>
-                        <ArrowRight color="#4f46e5" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                    <View style={[styles.arrowCircle, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                        <ArrowRight color="#4f46e5" size={20} />
                     </View>
                 </TouchableOpacity>
 
@@ -89,8 +89,8 @@ const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
                             <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.creditDesc')}</Text>
                         </View>
                     </View>
-                    <View style={styles.arrowCircle}>
-                        <ArrowRight color="#0ea5e9" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                    <View style={[styles.arrowCircle, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                        <ArrowRight color="#0ea5e9" size={20} />
                     </View>
                 </TouchableOpacity>
 
@@ -109,8 +109,8 @@ const PortalScreen = ({ onSelectMode, onLogout, userName }) => {
                             <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>{t('portal.statsDesc')}</Text>
                         </View>
                     </View>
-                    <View style={styles.arrowCircle}>
-                        <ArrowRight color="#10b981" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                    <View style={[styles.arrowCircle, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                        <ArrowRight color="#10b981" size={20} />
                     </View>
                 </TouchableOpacity>
             </View>

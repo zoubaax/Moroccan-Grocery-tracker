@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Dimensions, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { X, Zap, Scan, Package, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Zap, Scan, Package, CheckCircle } from 'lucide-react-native';
 import { useLanguage } from '../services/LanguageContext';
 
 const { width } = Dimensions.get('window');
@@ -60,8 +60,8 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-                    <X color="#fff" size={24} />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.iconButton, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                    <ArrowLeft color="#fff" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{continuous ? t('scanner.headerContinuous') : t('scanner.headerSingle')}</Text>
                 <TouchableOpacity onPress={() => setTorch(!torch)} style={styles.iconButton}>

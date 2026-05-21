@@ -132,8 +132,8 @@ const SalesReportScreen = ({ token, apiUrl, onBack }) => {
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ChevronLeft size={24} color="#1e293b" style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <TouchableOpacity onPress={onBack} style={[styles.backBtn, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                    <ChevronLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('salesReport.headerTitle')}</Text>
                 <TouchableOpacity onPress={fetchSales} style={styles.refreshBtn}>

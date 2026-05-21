@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Platform, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Search, User, Phone, CheckCircle2, ChevronRight, ArrowLeft, UserPlus } from 'lucide-react-native';
 import axios from 'axios';
 import { useLanguage } from '../services/LanguageContext';
@@ -75,24 +75,30 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                         {item.currentBalance?.toFixed(2) || '0.00'} DH
                     </Text>
                 </View>
-                <ChevronRight color="#cbd5e1" size={20} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <View style={isRTL ? { transform: [{ rotate: '180deg' }] } : null}>
+                    <ChevronRight color="#cbd5e1" size={20} />
+                </View>
             </TouchableOpacity>
         );
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
-                </TouchableOpacity>
-                <Text style={styles.title}>
-                    {mode === 'select' ? t('customerSearch.title') : t('customerSearch.titleManage')}
-                </Text>
-                <TouchableOpacity onPress={onAddCustomer} style={styles.addBtn}>
-                    <UserPlus color="#4f46e5" size={24} />
-                </TouchableOpacity>
-            </View>
+            <KeyboardAvoidingView 
+                style={{ flex: 1 }} 
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <View style={[styles.header, { flexDirection: flexDir }]}>
+                    <TouchableOpacity onPress={onBack} style={[styles.backBtn, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                        <ArrowLeft color="#1e293b" size={24} />
+                    </TouchableOpacity>
+                    <Text style={styles.title}>
+                        {mode === 'select' ? t('customerSearch.title') : t('customerSearch.titleManage')}
+                    </Text>
+                    <TouchableOpacity onPress={onAddCustomer} style={styles.addBtn}>
+                        <UserPlus color="#4f46e5" size={24} />
+                    </TouchableOpacity>
+                </View>
 
             <View style={[styles.searchContainer, { flexDirection: flexDir }]}>
                 <Search color="#94a3b8" size={18} style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }} />
@@ -113,6 +119,8 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                 contentContainerStyle={styles.list}
                 refreshing={isLoading}
                 onRefresh={fetchCustomers}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
                 ListHeaderComponent={() => query.length > 0 && filteredCustomers.length > 0 ? (
                     <Text style={[styles.listHeader, { textAlign: tAlign }]}>
                         {language === 'fr' ? `RÉSULTATS TROUVÉS (${filteredCustomers.length})` : `النتائج الموجودة (${filteredCustomers.length})`}
@@ -132,6 +140,7 @@ const CustomerSearchScreen = ({ onSelect, onBack, onAddCustomer, token, apiUrl, 
                     </View>
                 )}
             />
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

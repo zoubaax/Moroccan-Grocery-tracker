@@ -11,7 +11,7 @@ import CustomerDetailScreen from './src/screens/CustomerDetailScreen';
 import SalesReportScreen from './src/screens/SalesReportScreen';
 import ClientDashboardScreen from './src/screens/ClientDashboardScreen';
 import * as SplashScreen from 'expo-splash-screen';
-import { ArrowLeft, ShoppingCart, Power, User } from 'lucide-react-native';
+import { ArrowLeft, ShoppingCart, User } from 'lucide-react-native';
 import axios from 'axios';
 import { LanguageProvider, useLanguage } from './src/services/LanguageContext';
 
@@ -130,8 +130,8 @@ function AppContent() {
 
   const renderHeader = (titleKey, onBack) => (
     <View style={[styles.appHeader, { flexDirection: flexDir }]}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <ArrowLeft color="#1e293b" size={24} style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+      <TouchableOpacity onPress={onBack} style={[styles.backButton, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+        <ArrowLeft color="#1e293b" size={24} />
       </TouchableOpacity>
       <Text style={[styles.appTitle, { textAlign: tAlign }]}>{t(titleKey)}</Text>
       <View style={{ width: 40 }} />
@@ -208,7 +208,15 @@ function AppContent() {
       {currentScreen === 'scanner' && (
         <>
             <ScannerScreen 
-              navigation={{ goBack: () => setCurrentScreen(user?.role === 'ROLE_MOUL7ANOUT' ? 'portal' : 'login') }} 
+              navigation={{ 
+                goBack: () => {
+                  if (user?.role === 'ROLE_MOUL7ANOUT') {
+                    setCurrentScreen('portal');
+                  } else {
+                    handleLogout();
+                  }
+                } 
+              }} 
               onScan={handleScan}
               continuous={user?.role === 'ROLE_MOUL7ANOUT'}
               lastAdded={lastAddedProduct}
@@ -231,12 +239,6 @@ function AppContent() {
                     </TouchableOpacity>
                 </View>
             )}
-            <TouchableOpacity 
-              onPress={handleLogout} 
-              style={[styles.logoutBtn, { top: Platform.OS === 'ios' ? 60 : 40 }, isRTL ? { left: 20, right: 'auto' } : { right: 20, left: 'auto' }]}
-            >
-              <Power color="#fff" size={20} />
-            </TouchableOpacity>
         </>
       )}
 
@@ -292,7 +294,6 @@ const styles = StyleSheet.create({
   floatingCartText: { color: '#fff', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
   badge: { position: 'absolute', top: -10, left: '50%', marginLeft: -35, backgroundColor: '#ef4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-  logoutBtn: { position: 'absolute', right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   customerBanner: { backgroundColor: '#ef4444', alignSelf: 'center', paddingHorizontal: 15, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 },
   customerBannerText: { color: '#fff', fontSize: 12, fontWeight: 'bold' }
 });

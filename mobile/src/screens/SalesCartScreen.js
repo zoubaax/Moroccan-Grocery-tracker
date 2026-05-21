@@ -127,8 +127,8 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.headerIcon}>
-                    <ChevronLeft size={24} color="#1e293b" style={isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <TouchableOpacity onPress={onBack} style={[styles.headerIcon, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
+                    <ChevronLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
                 <Text style={styles.title}>{t('cart.checkoutTitle')}</Text>
                 <TouchableOpacity onPress={onClear}>
