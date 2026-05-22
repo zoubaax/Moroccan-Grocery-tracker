@@ -26,7 +26,9 @@ import {
     Briefcase,
     Lock,
     ShieldCheck,
-    CheckCircle
+    CheckCircle,
+    Sparkles,
+    Zap
 } from 'lucide-react';
 
 const UsersManagement = () => {
@@ -40,6 +42,8 @@ const UsersManagement = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showPlanModal, setShowPlanModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState('START');
     
     // Forms state
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,21 +123,26 @@ const UsersManagement = () => {
         }
     };
 
-    const handlePlanChange = async (userId, plan) => {
+    const handlePlanChangeSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
         try {
-            await api.put(`/users/${userId}/subscription`, { plan });
+            await api.put(`/users/${selectedUser.id}/subscription`, { plan: selectedPlan });
             fetchUsers();
+            setShowPlanModal(false);
         } catch (error) {
             const msg = error.response?.data?.message || 'Failed to update subscription plan';
             alert(msg);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const getPlanBadgeClass = (plan) => {
         switch (plan) {
-            case 'ULTIMATE': return 'bg-amber-100 text-amber-800 border-amber-200';
-            case 'PRO': return 'bg-violet-100 text-violet-800 border-violet-200';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200';
+            case 'ULTIMATE': return 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 border-amber-500/30 font-extrabold shadow-sm shadow-amber-500/5 hover:from-amber-500/20 hover:to-orange-500/20';
+            case 'PRO': return 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 text-violet-700 border-violet-500/30 font-extrabold shadow-sm shadow-violet-500/5 hover:from-violet-500/20 hover:to-indigo-500/20';
+            default: return 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 border-slate-300/60 font-semibold hover:from-slate-100 hover:to-slate-200';
         }
     };
 
@@ -277,15 +286,18 @@ const UsersManagement = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             {user.role?.name === 'ROLE_MOUL7ANOUT' ? (
-                                                <select
-                                                    className={`text-xs font-bold px-2 py-1 rounded-lg border outline-none focus:ring-2 focus:ring-indigo-500/20 ${getPlanBadgeClass(user.subscriptionPlan || 'START')}`}
-                                                    value={user.subscriptionPlan || 'START'}
-                                                    onChange={(e) => handlePlanChange(user.id, e.target.value)}
+                                                <button
+                                                    onClick={() => { 
+                                                        setSelectedUser(user); 
+                                                        setSelectedPlan(user.subscriptionPlan || 'START');
+                                                        setShowPlanModal(true); 
+                                                    }}
+                                                    className={`text-[10px] tracking-wider uppercase font-bold px-3 py-1.5 rounded-xl border outline-none transition-all duration-200 hover:scale-105 shadow-sm active:scale-95 flex items-center gap-1.5 ${getPlanBadgeClass(user.subscriptionPlan || 'START')}`}
                                                 >
-                                                    <option value="START">Start</option>
-                                                    <option value="PRO">Pro</option>
-                                                    <option value="ULTIMATE">Ultimate</option>
-                                                </select>
+                                                    {(user.subscriptionPlan || 'START') === 'ULTIMATE' ? <Sparkles size={11} className="text-amber-500 animate-pulse" /> : 
+                                                     (user.subscriptionPlan || 'START') === 'PRO' ? <Crown size={11} className="text-violet-500" /> : <Store size={11} className="text-slate-500" />}
+                                                    {user.subscriptionPlan || 'START'}
+                                                </button>
                                             ) : (
                                                 <span className="text-xs text-gray-400">—</span>
                                             )}
@@ -440,6 +452,168 @@ const UsersManagement = () => {
                                 <button onClick={() => handleDelete(selectedUser.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"><Trash2 size={16} />Delete User</button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Subscription Plan Modal */}
+            {showPlanModal && selectedUser && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+                    <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] animate-in fade-in zoom-in-95 duration-300 overflow-hidden border border-slate-100">
+                        {/* Modal Header */}
+                        <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between relative border-b border-indigo-950/20">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="flex items-center gap-4 relative z-10">
+                                <div className="bg-gradient-to-tr from-indigo-500/20 to-indigo-500/5 p-3.5 rounded-2xl border border-indigo-400/20 text-indigo-300 shadow-inner flex items-center justify-center">
+                                    <Sparkles size={22} className="animate-pulse" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-extrabold text-white tracking-wide">Configure Merchant Subscription</h3>
+                                    <p className="text-xs text-indigo-200 mt-0.5 font-medium">Select the platform access tier for <span className="font-semibold text-white">{selectedUser.name}</span></p>
+                                </div>
+                            </div>
+                            <button type="button" onClick={() => setShowPlanModal(false)} className="text-indigo-200 hover:text-white transition-colors relative z-10 bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/5 hover:border-white/10"><X size={16} /></button>
+                        </div>
+                        
+                        {/* Modal Body */}
+                        <form onSubmit={handlePlanChangeSubmit} className="p-6 space-y-6 bg-slate-50/30">
+                            {/* Target merchant summary banner */}
+                            <div className="bg-white rounded-2xl p-5 border border-slate-200/50 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow duration-300">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Merchant Account</p>
+                                    <p className="font-extrabold text-slate-800 text-lg leading-tight">{selectedUser.name}</p>
+                                    <p className="text-xs text-slate-500 font-medium">{selectedUser.email}</p>
+                                </div>
+                                <div className="text-right space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Status</p>
+                                    <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] font-black border tracking-wider uppercase shadow-sm ${getPlanBadgeClass(selectedUser.subscriptionPlan || 'START')}`}>
+                                        {(selectedUser.subscriptionPlan || 'START') === 'ULTIMATE' ? <Sparkles size={11} className="animate-pulse" /> : 
+                                         (selectedUser.subscriptionPlan || 'START') === 'PRO' ? <Crown size={11} /> : <Store size={11} />}
+                                        {selectedUser.subscriptionPlan || 'START'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Plan Cards Grid */}
+                            <div className="grid grid-cols-3 gap-4">
+                                {/* START CARD */}
+                                <div 
+                                    onClick={() => setSelectedPlan('START')}
+                                    className={`relative rounded-2xl p-5 border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[275px] hover:-translate-y-1 ${
+                                        selectedPlan === 'START' 
+                                            ? 'border-slate-600 bg-white shadow-xl shadow-slate-600/5 ring-4 ring-slate-600/5' 
+                                            : 'border-slate-200/60 bg-white hover:border-slate-300 shadow-sm hover:shadow-md'
+                                    }`}
+                                >
+                                    <div className="space-y-4">
+                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all ${
+                                            selectedPlan === 'START' 
+                                                ? 'bg-slate-600 text-white border-transparent shadow-md shadow-slate-600/20' 
+                                                : 'bg-slate-50 text-slate-500 border-slate-100'
+                                        }`}>
+                                            <Store size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-slate-900 text-base">Start</h4>
+                                            <p className="text-[11px] text-slate-400 leading-normal font-medium mt-1">Essential tools for single shopkeepers.</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2.5 pt-4 border-t border-slate-100/80">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Sales Tracker</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Credit Ledger</div>
+                                        <div className="flex items-center gap-2 text-xs font-medium text-slate-400/80"><Lock size={13} className="text-slate-300/80 shrink-0" /> Marketplace</div>
+                                        <div className="flex items-center gap-2 text-xs font-medium text-slate-400/80"><Lock size={13} className="text-slate-300/80 shrink-0" /> AI Automation</div>
+                                    </div>
+                                </div>
+
+                                {/* PRO CARD */}
+                                <div 
+                                    onClick={() => setSelectedPlan('PRO')}
+                                    className={`relative rounded-2xl p-5 border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[275px] hover:-translate-y-1 ${
+                                        selectedPlan === 'PRO' 
+                                            ? 'border-violet-600 bg-white shadow-xl shadow-violet-600/5 ring-4 ring-violet-600/5' 
+                                            : 'border-slate-200/60 bg-white hover:border-violet-300 shadow-sm hover:shadow-md'
+                                    }`}
+                                >
+                                    <div className="space-y-4">
+                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all ${
+                                            selectedPlan === 'PRO' 
+                                                ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white border-transparent shadow-md shadow-violet-600/20' 
+                                                : 'bg-violet-50 text-violet-600 border-violet-100'
+                                        }`}>
+                                            <Crown size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-slate-900 text-base">Pro</h4>
+                                            <p className="text-[11px] text-slate-400 leading-normal font-medium mt-1">Supercharge your digital ordering reach.</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2.5 pt-4 border-t border-slate-100/80">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Sales Tracker</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Credit Ledger</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Marketplace</div>
+                                        <div className="flex items-center gap-2 text-xs font-medium text-slate-400/80"><Lock size={13} className="text-slate-300/80 shrink-0" /> AI Automation</div>
+                                    </div>
+                                </div>
+
+                                {/* ULTIMATE CARD */}
+                                <div 
+                                    onClick={() => setSelectedPlan('ULTIMATE')}
+                                    className={`relative rounded-2xl p-5 border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[275px] overflow-hidden hover:-translate-y-1 ${
+                                        selectedPlan === 'ULTIMATE' 
+                                            ? 'border-amber-500 bg-white shadow-xl shadow-amber-500/10 ring-4 ring-amber-500/5' 
+                                            : 'border-slate-200/60 bg-white hover:border-amber-300 shadow-sm hover:shadow-md'
+                                    }`}
+                                >
+                                    <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black px-3.5 py-1 rounded-bl-2xl shadow-sm uppercase tracking-widest border-b border-l border-amber-400/20">
+                                        PREMIUM
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all ${
+                                            selectedPlan === 'ULTIMATE' 
+                                                ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-transparent shadow-md shadow-amber-500/20' 
+                                                : 'bg-amber-50 text-amber-600 border-amber-100'
+                                        }`}>
+                                            <Sparkles size={20} className={selectedPlan === 'ULTIMATE' ? 'animate-pulse' : ''} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-slate-900 text-base">Ultimate</h4>
+                                            <p className="text-[11px] text-slate-400 leading-normal font-medium mt-1">Full AI reminders & seamless scanner detour.</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2.5 pt-4 border-t border-slate-100/80">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Sales Tracker</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Credit Ledger</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CheckCircle size={14} className="text-emerald-500 shrink-0" /> Marketplace</div>
+                                        <div className="flex items-center gap-2 text-xs font-extrabold text-amber-600"><Zap size={13} className="text-amber-500 shrink-0 animate-pulse" /> AI Reminders</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Descriptive alert card with clean left border */}
+                            <div className="bg-indigo-50/40 border border-indigo-100/60 border-l-4 border-l-indigo-600 rounded-2xl p-4 flex gap-4 items-start shadow-sm">
+                                <div className="bg-indigo-600 text-white p-2.5 rounded-xl shadow-sm shadow-indigo-600/10 flex items-center justify-center shrink-0">
+                                    <Sparkles size={16} className="animate-pulse" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h5 className="font-extrabold text-slate-900 text-sm tracking-wide">Subscription Summary</h5>
+                                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                                        {selectedPlan === 'START' && "The Start plan is designed for basic bookkeeping. It allows normal sales operations and simple credit ledger storage, but restricts access to the digital ordering catalog and advanced automated tools."}
+                                        {selectedPlan === 'PRO' && "The Pro plan enables the digital marketplace (Ma Pania). Clients can prepare their grocery lists and scan orders at the cash register to streamline their checkouts."}
+                                        {selectedPlan === 'ULTIMATE' && "The Ultimate plan gives the merchant ultimate powers: all clients unlock the marketplace automatically, and they can send voice call and text debt reminders to customers written in respectful Moroccan Darija using advanced AI agents."}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="flex gap-4 pt-2">
+                                <button type="button" onClick={() => setShowPlanModal(false)} className="flex-1 px-4 py-3.5 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-all duration-200">Cancel</button>
+                                <button type="submit" disabled={isSubmitting} className="flex-1 bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2">
+                                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                                    Save Subscription Plan
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

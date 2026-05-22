@@ -12,10 +12,10 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
     const plan = subscriptionPlan || 'START';
 
     // Visibility rules:
-    // Marketplace card: show for START (locked) and PRO (unlocked) — ULTIMATE scans PAN- from Vente normale
-    // AI card: show for START only (locked for marketing) — PRO doesn't have it, ULTIMATE accesses it inside Carnet de crédits
-    const showMarketplaceCard = plan !== 'ULTIMATE';
-    const showAiCard = plan === 'START';
+    // Marketplace card: show for START only (locked) — PRO & ULTIMATE access it via scanner detours from Vente normale.
+    // AI card: show for START & PRO (locked) — ULTIMATE accesses it inside Carnet de crédits (CustomerDetailScreen).
+    const showMarketplaceCard = plan === 'START';
+    const showAiCard = plan !== 'ULTIMATE';
 
     const openOrUpgrade = (enabled, targetPlan, mode) => {
         if (enabled) {
