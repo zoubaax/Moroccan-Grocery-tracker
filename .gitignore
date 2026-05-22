@@ -42,3 +42,4 @@ build/
 ### Local Only Docs ###
 TECH_STACK.md
 DIAGRAMS.md
+.docs
