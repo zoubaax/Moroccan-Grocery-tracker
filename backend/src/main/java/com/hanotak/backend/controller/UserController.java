@@ -96,8 +96,13 @@ public class UserController {
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-    userService.deleteUser(id);
-    return ResponseEntity.ok(new MessageResponse("User deleted successfully."));
+  public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
+    try {
+      UserDetailsImpl currentUser = (UserDetailsImpl) authentication.getPrincipal();
+      userService.deleteUser(id, currentUser.getId());
+      return ResponseEntity.ok(new MessageResponse("User deleted successfully."));
+    } catch (RuntimeException ex) {
+      return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
+    }
   }
 }

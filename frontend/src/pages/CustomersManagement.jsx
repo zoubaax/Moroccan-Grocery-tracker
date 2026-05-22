@@ -119,7 +119,8 @@ const CustomersManagement = () => {
             setStatus({ type: 'success', message: 'Customer deleted successfully!' });
             setTimeout(() => setStatus({ type: '', message: '' }), 3000);
         } catch (error) {
-            setStatus({ type: 'error', message: 'Delete failed.' });
+            const msg = error.response?.data?.message || error.response?.data?.error || 'Delete failed.';
+            setStatus({ type: 'error', message: msg });
         }
     };
 

@@ -100,7 +100,8 @@ const UsersManagement = () => {
             setShowDeleteConfirm(false);
             setSelectedUser(null);
         } catch (error) {
-            alert("Failed to delete user");
+            const msg = error.response?.data?.message || error.response?.data?.error || 'Failed to delete user';
+            alert(msg);
         }
     };
 
