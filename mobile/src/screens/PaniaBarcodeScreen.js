@@ -169,10 +169,10 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                                     format: 'CODE128',
                                     lineColor: '#0f172a',
                                     background: '#ffffff',
-                                    height: 100,
-                                    width: 1.7,
+                                    height: 90,
+                                    width: 1.2,
                                     displayValue: false,
-                                    margin: 0,
+                                    margin: 12,
                                 }}
                             />
                         </View>
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     cardDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#ef4444' },
     cardBrand: { fontSize: 11, fontWeight: '800', color: '#6366f1', letterSpacing: 1 },
 
-    barcodeWrapper: { paddingVertical: 20, paddingHorizontal: 10, alignItems: 'center', backgroundColor: '#fff' },
+    barcodeWrapper: { paddingVertical: 8, paddingHorizontal: 0, alignItems: 'center', backgroundColor: '#fff', width: '100%' },
 
     tokenRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingBottom: 12, gap: 1 },
     tokenChar: { fontSize: 20, fontWeight: '800', color: '#0f172a', letterSpacing: 3, fontVariant: ['tabular-nums'] },
