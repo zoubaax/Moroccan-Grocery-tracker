@@ -1,6 +1,8 @@
 package com.hanotak.backend.controller;
 
+import com.hanotak.backend.model.Category;
 import com.hanotak.backend.model.Product;
+import com.hanotak.backend.repository.CategoryRepository;
 import com.hanotak.backend.repository.ProductRepository;
 import com.hanotak.backend.service.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private CloudinaryService cloudinaryService;
@@ -52,7 +57,12 @@ public class ProductController {
 
         Product product = new Product(name, barcode, price, stockQuantity);
         product.setDescription(description);
-        product.setCategory(category);
+
+        if (category != null && !category.isEmpty()) {
+            Category cat = categoryRepository.findByName(category)
+                    .orElseGet(() -> categoryRepository.save(new Category(category)));
+            product.setCategory(cat);
+        }
 
         if (image != null && !image.isEmpty()) {
             Map uploadResult = cloudinaryService.uploadImage(image);
@@ -65,16 +75,35 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
+    public ResponseEntity<?> updateProduct(
+            @PathVariable Long id,
+            @RequestParam("name") String name,
+            @RequestParam("barcode") String barcode,
+            @RequestParam("price") BigDecimal price,
+            @RequestParam("stockQuantity") Integer stockQuantity,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+        
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error: Product not found."));
 
-        product.setName(productDetails.getName());
-        product.setBarcode(productDetails.getBarcode());
-        product.setPrice(productDetails.getPrice());
-        product.setStockQuantity(productDetails.getStockQuantity());
-        product.setDescription(productDetails.getDescription());
-        product.setCategory(productDetails.getCategory());
+        product.setName(name);
+        product.setBarcode(barcode);
+        product.setPrice(price);
+        product.setStockQuantity(stockQuantity);
+        product.setDescription(description);
+
+        if (category != null && !category.isEmpty()) {
+            Category cat = categoryRepository.findByName(category)
+                    .orElseGet(() -> categoryRepository.save(new Category(category)));
+            product.setCategory(cat);
+        }
+
+        if (image != null && !image.isEmpty()) {
+            Map uploadResult = cloudinaryService.uploadImage(image);
+            product.setImageUrl(uploadResult.get("url").toString());
+        }
 
         productRepository.save(product);
         return ResponseEntity.ok(product);

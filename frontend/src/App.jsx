@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import UsersManagement from './pages/UsersManagement';
 import InventoryManagement from './pages/InventoryManagement';
+import CategoriesManagement from './pages/CategoriesManagement';
 import CustomersManagement from './pages/CustomersManagement';
 import SalesTerminal from './pages/SalesTerminal';
 import SalesHistory from './pages/SalesHistory';
@@ -26,6 +27,7 @@ function App() {
           {/* Inventory & Stock (Admin & Staff) */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF']} />}>
             <Route path="/inventory" element={<InventoryManagement />} />
+            <Route path="/categories" element={<CategoriesManagement />} />
           </Route>
 
           {/* Admin Only Routes */}

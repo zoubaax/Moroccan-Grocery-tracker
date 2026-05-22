@@ -14,7 +14,8 @@ import {
   Store,
   Menu,
   X,
-  History
+  History,
+  Tag
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -24,6 +25,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_MOUL7ANOUT', 'ROLE_CLIENT'] },
     { name: 'Inventory', path: '/inventory', icon: <Package size={20} />, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
+    { name: 'Categories', path: '/categories', icon: <Tag size={20} />, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
     { name: 'Users', path: '/users', icon: <Users size={20} />, roles: ['ROLE_ADMIN'] },
     { name: 'Customers', path: '/customers', icon: <Users size={20} />, roles: ['ROLE_MOUL7ANOUT'] },
     { name: 'Sales', path: '/sales', icon: <ShoppingBag size={20} />, roles: ['ROLE_ADMIN', 'ROLE_MOUL7ANOUT'] },

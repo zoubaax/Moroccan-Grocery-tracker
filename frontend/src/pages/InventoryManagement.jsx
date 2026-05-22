@@ -20,6 +20,7 @@ import {
 
 const InventoryManagement = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     
@@ -40,7 +41,17 @@ const InventoryManagement = () => {
 
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await api.get('/categories');
+            setCategories(response.data);
+        } catch (error) {
+            console.error("Failed to fetch categories", error);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -84,6 +95,45 @@ const InventoryManagement = () => {
             setTimeout(() => setShowAddModal(false), 1500);
         } catch (error) {
             setStatus({ type: 'error', message: 'Failed to add product.' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditProduct = (product) => {
+        setSelectedProduct(product);
+        setFormData({
+            name: product.name,
+            barcode: product.barcode,
+            price: product.price,
+            stockQuantity: product.stockQuantity,
+            description: product.description,
+            category: product.category?.name || ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleUpdateProduct = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setStatus({ type: '', message: '' });
+
+        const data = new FormData();
+        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        if (imageFile) data.append('image', imageFile);
+
+        try {
+            await api.put(`/products/${selectedProduct.id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setStatus({ type: 'success', message: 'Product updated successfully!' });
+            setFormData({ name: '', barcode: '', price: '', stockQuantity: '', description: '', category: '' });
+            setImageFile(null);
+            setImagePreview(null);
+            fetchProducts();
+            setTimeout(() => setShowEditModal(false), 1500);
+        } catch (error) {
+            setStatus({ type: 'error', message: 'Failed to update product.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -162,10 +212,10 @@ const InventoryManagement = () => {
                                     <div className="flex items-start justify-between mb-2">
                                         <div>
                                             <h3 className="font-bold text-gray-900 leading-tight mb-1">{product.name}</h3>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{product.category || 'NO CATEGORY'}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{product.category?.name || 'NO CATEGORY'}</p>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <button className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                                            <button onClick={() => handleEditProduct(product)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit size={16} /></button>
                                             <button onClick={() => { setSelectedProduct(product); setShowDeleteConfirm(true); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
@@ -259,12 +309,9 @@ const InventoryManagement = () => {
                                             <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <select className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer font-bold text-gray-800" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
                                                 <option value="">Select Category</option>
-                                                <option value="Dairy">Dairy & Eggs</option>
-                                                <option value="Bakery">Bakery</option>
-                                                <option value="Produce">Produce</option>
-                                                <option value="Snacks">Snacks & Sweets</option>
-                                                <option value="Beverages">Beverages</option>
-                                                <option value="Household">Household</option>
+                                                {categories.map((cat) => (
+                                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
@@ -285,6 +332,118 @@ const InventoryManagement = () => {
                                     <>
                                         <Check size={22} />
                                         <span>Confirm and Save Entry</span>
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Product Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-100"><Edit size={20} /></div>
+                                <div><h3 className="text-xl font-bold text-gray-900 leading-none mb-1">Edit Product</h3><p className="text-xs text-gray-500 font-medium">Update product information</p></div>
+                            </div>
+                            <button onClick={() => { setShowEditModal(false); setFormData({ name: '', barcode: '', price: '', stockQuantity: '', description: '', category: '' }); setImageFile(null); setImagePreview(null); }} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={20} /></button>
+                        </div>
+                        
+                        <form onSubmit={handleUpdateProduct} className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                            {status.message && (
+                                <div className={`p-4 rounded-xl flex items-center gap-3 mb-6 font-semibold text-sm ${status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
+                                    {status.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                                    {status.message}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column: Media */}
+                                <div className="space-y-4">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Product Visual</label>
+                                    <div 
+                                        className="aspect-square rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center relative group cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all overflow-hidden"
+                                        onClick={() => document.getElementById('image-upload-edit').click()}
+                                    >
+                                        {imagePreview ? (
+                                            <>
+                                                <img src={imagePreview} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Camera className="text-white" size={32} />
+                                                </div>
+                                            </>
+                                        ) : selectedProduct?.imageUrl ? (
+                                            <>
+                                                <img src={selectedProduct.imageUrl} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Camera className="text-white" size={32} />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="bg-white p-4 rounded-2xl shadow-sm text-gray-400 group-hover:text-indigo-600 group-hover:scale-110 transition-all"><Camera size={32} /></div>
+                                                <p className="mt-4 text-xs font-bold text-gray-400 group-hover:text-indigo-600">CLICK TO CHANGE IMAGE</p>
+                                            </>
+                                        )}
+                                        <input id="image-upload-edit" type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Core Info */}
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Name</label>
+                                        <input required className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium" placeholder="Ex: Lait Jaouda 1L" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Barcode (EAN-13)</label>
+                                        <div className="relative">
+                                            <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <input required className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold tracking-widest" placeholder="Scan or type barcode" value={formData.barcode} onChange={(e) => setFormData({...formData, barcode: e.target.value})} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Price (MAD)</label>
+                                            <input required type="number" step="0.01" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="0.00" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Quantity</label>
+                                            <input required type="number" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold" placeholder="0" value={formData.stockQuantity} onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block pl-1">Category</label>
+                                        <div className="relative">
+                                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <select className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer font-bold text-gray-800" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+                                                <option value="">Select Category</option>
+                                                {categories.map((cat) => (
+                                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting}
+                                className="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-70"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={22} />
+                                        <span>Updating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={22} />
+                                        <span>Update Product</span>
                                     </>
                                 )}
                             </button>

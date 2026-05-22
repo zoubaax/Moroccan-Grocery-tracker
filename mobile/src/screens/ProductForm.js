@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import { Package, Tag, DollarSign, List, Barcode, Check, Camera, Image as ImageIcon } from 'lucide-react-native';
+import { Package, Tag, DollarSign, List, Barcode, Check, Camera, Image as ImageIcon, ChevronDown, X } from 'lucide-react-native';
 import { useLanguage } from '../services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -12,9 +12,33 @@ const ProductForm = ({ barcode, token, onComplete }) => {
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [quantity, setQuantity] = useState('');
-    const [category, setCategory] = useState('Dairy');
+    const [category, setCategory] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [image, setImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isFetchingCategories, setIsFetchingCategories] = useState(false);
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        setIsFetchingCategories(true);
+        try {
+            const response = await axios.get(`${API_URL}/categories`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setCategories(response.data);
+            if (response.data.length > 0) {
+                setCategory(response.data[0].name);
+            }
+        } catch (error) {
+            console.error("Failed to fetch categories:", error);
+        } finally {
+            setIsFetchingCategories(false);
+        }
+    };
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -30,7 +54,7 @@ const ProductForm = ({ barcode, token, onComplete }) => {
     };
 
     const handleSubmit = async () => {
-        if (!name || !price || !quantity) {
+        if (!name || !price || !quantity || !category) {
             alert(t('productForm.errorEmpty'));
             return;
         }
@@ -138,9 +162,15 @@ const ProductForm = ({ barcode, token, onComplete }) => {
 
                         <View style={styles.field}>
                             <Text style={[styles.label, { textAlign: tAlign }]}>{t('productForm.categoryLabel')}</Text>
-                            <View style={[styles.input, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                                <Text style={{ color: '#1e293b', fontWeight: 'bold' }}>{category}</Text>
-                            </View>
+                            <TouchableOpacity 
+                                style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]} 
+                                onPress={() => setShowCategoryModal(true)}
+                            >
+                                <Text style={{ color: isFetchingCategories ? '#94a3b8' : '#1e293b', fontWeight: 'bold' }}>
+                                    {isFetchingCategories ? 'Loading...' : (category || 'Select Category')}
+                                </Text>
+                                <ChevronDown color="#64748b" size={20} />
+                            </TouchableOpacity>
                         </View>
 
                         <TouchableOpacity style={[styles.submitButton, { flexDirection: flexDir }]} onPress={handleSubmit} disabled={isLoading}>
@@ -154,6 +184,56 @@ const ProductForm = ({ barcode, token, onComplete }) => {
                     </View>
                 </View>
             </ScrollView>
+
+            {/* Category Selection Modal */}
+            <Modal
+                visible={showCategoryModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowCategoryModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={[styles.modalHeader, { flexDirection: flexDir }]}>
+                            <Text style={styles.modalTitle}>Select Category</Text>
+                            <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+                                <X color="#64748b" size={24} />
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView style={styles.categoryList}>
+                            {categories.map((cat) => (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    style={[
+                                        styles.categoryItem,
+                                        category === cat.name && styles.categoryItemSelected,
+                                        { flexDirection: flexDir }
+                                    ]}
+                                    onPress={() => {
+                                        setCategory(cat.name);
+                                        setShowCategoryModal(false);
+                                    }}
+                                >
+                                    <Tag 
+                                        color={category === cat.name ? '#4f46e5' : '#94a3b8'} 
+                                        size={20} 
+                                        style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+                                    />
+                                    <Text style={[
+                                        styles.categoryName,
+                                        category === cat.name && styles.categoryNameSelected
+                                    ]}>
+                                        {cat.name}
+                                    </Text>
+                                    {category === cat.name && (
+                                        <Check color="#4f46e5" size={20} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </KeyboardAvoidingView>
     );
 };
@@ -174,7 +254,16 @@ const styles = StyleSheet.create({
     input: { height: 55, backgroundColor: '#f8fafc', borderWith: 1, borderColor: '#f1f5f9', borderRadius: 18, paddingHorizontal: 20, justifyContent: 'center', fontSize: 15, color: '#1e293b' },
     row: { flexDirection: 'row' },
     submitButton: { height: 60, backgroundColor: '#4f46e5', borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10, shadowColor: '#4f46e5', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 },
-    submitText: { color: '#fff', fontWeight: 'bold', fontSize: 15 }
+    submitText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '70%' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+    modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
+    categoryList: { padding: 10 },
+    categoryItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16, marginBottom: 8, backgroundColor: '#f8fafc' },
+    categoryItemSelected: { backgroundColor: '#eef2ff', borderWidth: 1, borderColor: '#4f46e5' },
+    categoryName: { fontSize: 16, fontWeight: '600', color: '#1e293b', flex: 1 },
+    categoryNameSelected: { color: '#4f46e5', fontWeight: 'bold' }
 });
 
 export default ProductForm;
