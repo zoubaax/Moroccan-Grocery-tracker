@@ -10,6 +10,10 @@ import CustomerCreateScreen from './src/screens/CustomerCreateScreen';
 import CustomerDetailScreen from './src/screens/CustomerDetailScreen';
 import SalesReportScreen from './src/screens/SalesReportScreen';
 import ClientDashboardScreen from './src/screens/ClientDashboardScreen';
+import MarketplaceScreen from './src/screens/MarketplaceScreen';
+import PaniaScreen from './src/screens/PaniaScreen';
+import PaniaBarcodeScreen from './src/screens/PaniaBarcodeScreen';
+import PantryOrderScreen from './src/screens/PantryOrderScreen';
 import * as SplashScreen from 'expo-splash-screen';
 import { ArrowLeft, ShoppingCart, User } from 'lucide-react-native';
 import axios from 'axios';
@@ -25,6 +29,7 @@ function AppContent() {
   
   // Staff flow states
   const [scannedBarcode, setScannedBarcode] = useState(null);
+  const [scannedToken, setScannedToken] = useState(null);
   
   // Sales flow states
   const [salesCart, setSalesCart] = useState([]);
@@ -90,6 +95,12 @@ function AppContent() {
   };
 
   const handleScan = async (barcode) => {
+    if (barcode && barcode.startsWith('PAN-')) {
+        setScannedToken(barcode);
+        setCurrentScreen('pantry_order');
+        return;
+    }
+
     if (user?.role === 'ROLE_MOUL7ANOUT') {
         try {
             const response = await axios.get(`${API_URL}/products/barcode/${barcode}`, {
@@ -118,6 +129,7 @@ function AppContent() {
 
   const handleComplete = () => {
     setScannedBarcode(null);
+    setScannedToken(null);
     setSalesCart([]);
     setSelectedCustomer(null);
     setSaleMode('NORMAL');
@@ -202,6 +214,48 @@ function AppContent() {
             user={user}
             apiUrl={API_URL}
             onLogout={handleLogout}
+            onGoToShop={() => setCurrentScreen('marketplace')}
+            onGoToPania={() => setCurrentScreen('pania')}
+            onGoToBarcode={() => setCurrentScreen('pania_barcode')}
+          />
+      )}
+
+      {currentScreen === 'marketplace' && (
+          <MarketplaceScreen 
+            user={user}
+            apiUrl={API_URL}
+            onBack={() => setCurrentScreen('client_dashboard')}
+            onGoToPania={() => setCurrentScreen('pania')}
+          />
+      )}
+
+      {currentScreen === 'pania' && (
+          <PaniaScreen 
+            user={user}
+            apiUrl={API_URL}
+            onBack={() => setCurrentScreen('client_dashboard')}
+            onGoToBarcode={() => setCurrentScreen('pania_barcode')}
+          />
+      )}
+
+      {currentScreen === 'pania_barcode' && (
+          <PaniaBarcodeScreen 
+            user={user}
+            apiUrl={API_URL}
+            onBack={() => setCurrentScreen('pania')}
+          />
+      )}
+
+      {currentScreen === 'pantry_order' && (
+          <PantryOrderScreen 
+            scannedToken={scannedToken}
+            token={user?.token}
+            user={user}
+            onComplete={handleComplete}
+            onBack={() => {
+                setScannedToken(null);
+                setCurrentScreen('scanner');
+            }}
           />
       )}
       

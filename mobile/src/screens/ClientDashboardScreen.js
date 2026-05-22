@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, Alert, Image, Linking, RefreshControl } from 'react-native';
-import { Phone, MessageCircle, Receipt, LogOut, Calendar, ShoppingBag, CreditCard, DollarSign, ShieldAlert, CheckCircle2, User, Share2 } from 'lucide-react-native';
+import { Phone, MessageCircle, Receipt, LogOut, Calendar, ShoppingBag, CreditCard, DollarSign, ShieldAlert, CheckCircle2, User, Share2, ShoppingCart, Barcode } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
 import { useLanguage } from '../services/LanguageContext';
 
-const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
+const ClientDashboardScreen = ({ user, apiUrl, onLogout, onGoToShop, onGoToPania, onGoToBarcode }) => {
     const { t, language, changeLanguage, isRTL, tAlign, flexDir } = useLanguage();
     const [profile, setProfile] = useState(user);
     const [purchases, setPurchases] = useState([]);
@@ -211,6 +211,50 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout }) => {
                                 </Text>
                             </View>
 
+                            {/* Quick Actions Grid */}
+                            <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>
+                                {language === 'fr' ? "MON ESPACE PANIA" : "فضاء السلة الخاص بي"}
+                            </Text>
+                            <View style={[styles.actionGrid, { flexDirection: flexDir }]}>
+                                <TouchableOpacity style={styles.actionGridCard} onPress={onGoToShop}>
+                                    <View style={[styles.actionIconBox, { backgroundColor: '#e0e7ff' }]}>
+                                        <ShoppingBag size={22} color="#4f46e5" />
+                                    </View>
+                                    <Text style={styles.actionCardTitle}>
+                                        {language === 'fr' ? "Boutique 7anoti" : "المتجر الرقمي"}
+                                    </Text>
+                                    <Text style={styles.actionCardDesc}>
+                                        {language === 'fr' ? "Parcourir le catalogue" : "تصفح واطلب السلع"}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity style={styles.actionGridCard} onPress={onGoToPania}>
+                                    <View style={[styles.actionIconBox, { backgroundColor: '#d1fae5' }]}>
+                                        <ShoppingCart size={22} color="#059669" />
+                                    </View>
+                                    <Text style={styles.actionCardTitle}>
+                                        {language === 'fr' ? "Ma Pania" : "سلتي 🧺"}
+                                    </Text>
+                                    <Text style={styles.actionCardDesc}>
+                                        {language === 'fr' ? "Gérer mes achats" : "قائمة مشترياتي"}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity style={[styles.barcodeShortcutCard, { flexDirection: flexDir }]} onPress={onGoToBarcode}>
+                                <View style={[styles.barcodeIconBox, { backgroundColor: '#fffbeb' }]}>
+                                    <Barcode size={22} color="#d97706" />
+                                </View>
+                                <View style={[styles.barcodeTextColumn, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0, flex: 1 }]}>
+                                    <Text style={styles.barcodeShortcutTitle}>
+                                        {language === 'fr' ? "Mon Code-barres Actif" : "الرمز الشريطي للطلب"}
+                                    </Text>
+                                    <Text style={styles.barcodeShortcutDesc}>
+                                        {language === 'fr' ? "Faites scanner pour payer chez l'épicier" : "امسح الرمز للدفع بسرعة"}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+
                             {/* Contact Shopkeeper Card */}
                             <View style={[styles.contactCard, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                                 <Text style={[styles.contactTitle, { textAlign: tAlign }]}>{t('clientDashboard.contactTitle')}</Text>
@@ -277,6 +321,16 @@ const styles = StyleSheet.create({
     waBtn: { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
     waBtnText: { color: '#16a34a', fontWeight: 'bold', fontSize: 14 },
     sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#1e293b', marginBottom: 15, marginTop: 10 },
+    actionGrid: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+    actionGridCard: { flex: 1, backgroundColor: '#fff', borderRadius: 18, borderWidth: 1, borderColor: '#e2e8f0', padding: 15, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.01, shadowRadius: 5, elevation: 1 },
+    actionIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+    actionCardTitle: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', marginBottom: 4, textAlign: 'center' },
+    actionCardDesc: { fontSize: 10, color: '#64748b', textAlign: 'center', fontWeight: '500' },
+    barcodeShortcutCard: { backgroundColor: '#fff', borderRadius: 18, borderWidth: 1, borderColor: '#e2e8f0', padding: 15, flexDirection: 'row', alignItems: 'center', marginBottom: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.01, shadowRadius: 5, elevation: 1 },
+    barcodeIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    barcodeTextColumn: { flex: 1 },
+    barcodeShortcutTitle: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', marginBottom: 2 },
+    barcodeShortcutDesc: { fontSize: 11, color: '#64748b', fontWeight: '500' },
     purchaseCard: { backgroundColor: '#fff', borderRadius: 18, borderWidth: 1, borderColor: '#e2e8f0', padding: 18, marginBottom: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.01, shadowRadius: 5, elevation: 1 },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 12, marginBottom: 12 },
     txnIdRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

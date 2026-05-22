@@ -7,6 +7,7 @@ export const translations = {
       success: 'Succès',
       loading: 'Chargement...',
       logout: 'Déconnexion',
+      add: 'Ajouter',
     },
     login: {
       title: '7anoti',
@@ -220,6 +221,7 @@ export const translations = {
       success: 'نجاح',
       loading: 'جاري التحميل...',
       logout: 'خروج',
+      add: 'إضافة',
     },
     login: {
       title: 'حانوتي',
