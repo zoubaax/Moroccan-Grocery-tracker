@@ -6,6 +6,7 @@ import { generateAndShareReceipt } from '../services/ReceiptService';
 import { useLanguage } from '../services/LanguageContext';
 
 const ClientDashboardScreen = ({ user, apiUrl, onLogout, onGoToShop, onGoToPania, onGoToBarcode }) => {
+    const marketplaceEnabled = user?.features?.marketplace === true;
     const { t, language, changeLanguage, isRTL, tAlign, flexDir } = useLanguage();
     const [profile, setProfile] = useState(user);
     const [purchases, setPurchases] = useState([]);
@@ -211,49 +212,53 @@ const ClientDashboardScreen = ({ user, apiUrl, onLogout, onGoToShop, onGoToPania
                                 </Text>
                             </View>
 
-                            {/* Quick Actions Grid */}
-                            <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>
-                                {language === 'fr' ? "MON ESPACE PANIA" : "فضاء السلة الخاص بي"}
-                            </Text>
-                            <View style={[styles.actionGrid, { flexDirection: flexDir }]}>
-                                <TouchableOpacity style={styles.actionGridCard} onPress={onGoToShop}>
-                                    <View style={[styles.actionIconBox, { backgroundColor: '#e0e7ff' }]}>
-                                        <ShoppingBag size={22} color="#4f46e5" />
-                                    </View>
-                                    <Text style={styles.actionCardTitle}>
-                                        {language === 'fr' ? "Boutique 7anoti" : "المتجر الرقمي"}
+                            {/* Quick Actions Grid — only shown when shopkeeper has marketplace (PRO/ULTIMATE) */}
+                            {marketplaceEnabled && (
+                                <>
+                                    <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>
+                                        {language === 'fr' ? "MON ESPACE PANIA" : "فضاء السلة الخاص بي"}
                                     </Text>
-                                    <Text style={styles.actionCardDesc}>
-                                        {language === 'fr' ? "Parcourir le catalogue" : "تصفح واطلب السلع"}
-                                    </Text>
-                                </TouchableOpacity>
+                                    <View style={[styles.actionGrid, { flexDirection: flexDir }]}>
+                                        <TouchableOpacity style={styles.actionGridCard} onPress={onGoToShop}>
+                                            <View style={[styles.actionIconBox, { backgroundColor: '#e0e7ff' }]}>
+                                                <ShoppingBag size={22} color="#4f46e5" />
+                                            </View>
+                                            <Text style={styles.actionCardTitle}>
+                                                {language === 'fr' ? "Boutique 7anoti" : "المتجر الرقمي"}
+                                            </Text>
+                                            <Text style={styles.actionCardDesc}>
+                                                {language === 'fr' ? "Parcourir le catalogue" : "تصفح واطلب السلع"}
+                                            </Text>
+                                        </TouchableOpacity>
 
-                                <TouchableOpacity style={styles.actionGridCard} onPress={onGoToPania}>
-                                    <View style={[styles.actionIconBox, { backgroundColor: '#d1fae5' }]}>
-                                        <ShoppingCart size={22} color="#059669" />
+                                        <TouchableOpacity style={styles.actionGridCard} onPress={onGoToPania}>
+                                            <View style={[styles.actionIconBox, { backgroundColor: '#d1fae5' }]}>
+                                                <ShoppingCart size={22} color="#059669" />
+                                            </View>
+                                            <Text style={styles.actionCardTitle}>
+                                                {language === 'fr' ? "Ma Pania" : "سلتي 🧺"}
+                                            </Text>
+                                            <Text style={styles.actionCardDesc}>
+                                                {language === 'fr' ? "Gérer mes achats" : "قائمة مشترياتي"}
+                                            </Text>
+                                        </TouchableOpacity>
                                     </View>
-                                    <Text style={styles.actionCardTitle}>
-                                        {language === 'fr' ? "Ma Pania" : "سلتي 🧺"}
-                                    </Text>
-                                    <Text style={styles.actionCardDesc}>
-                                        {language === 'fr' ? "Gérer mes achats" : "قائمة مشترياتي"}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
 
-                            <TouchableOpacity style={[styles.barcodeShortcutCard, { flexDirection: flexDir }]} onPress={onGoToBarcode}>
-                                <View style={[styles.barcodeIconBox, { backgroundColor: '#fffbeb' }]}>
-                                    <Barcode size={22} color="#d97706" />
-                                </View>
-                                <View style={[styles.barcodeTextColumn, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0, flex: 1 }]}>
-                                    <Text style={styles.barcodeShortcutTitle}>
-                                        {language === 'fr' ? "Mon Code-barres Actif" : "الرمز الشريطي للطلب"}
-                                    </Text>
-                                    <Text style={styles.barcodeShortcutDesc}>
-                                        {language === 'fr' ? "Faites scanner pour payer chez l'épicier" : "امسح الرمز للدفع بسرعة"}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
+                                    <TouchableOpacity style={[styles.barcodeShortcutCard, { flexDirection: flexDir }]} onPress={onGoToBarcode}>
+                                        <View style={[styles.barcodeIconBox, { backgroundColor: '#fffbeb' }]}>
+                                            <Barcode size={22} color="#d97706" />
+                                        </View>
+                                        <View style={[styles.barcodeTextColumn, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0, flex: 1 }]}>
+                                            <Text style={styles.barcodeShortcutTitle}>
+                                                {language === 'fr' ? "Mon Code-barres Actif" : "الرمز الشريطي للطلب"}
+                                            </Text>
+                                            <Text style={styles.barcodeShortcutDesc}>
+                                                {language === 'fr' ? "Faites scanner pour payer chez l'épicier" : "امسح الرمز للدفع بسرعة"}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </>
+                            )}
 
                             {/* Contact Shopkeeper Card */}
                             <View style={[styles.contactCard, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>

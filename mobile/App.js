@@ -232,9 +232,9 @@ function AppContent() {
             user={user}
             apiUrl={API_URL}
             onLogout={handleLogout}
-            onGoToShop={() => setCurrentScreen('marketplace')}
-            onGoToPania={() => setCurrentScreen('pania')}
-            onGoToBarcode={() => setCurrentScreen('pania_barcode')}
+            onGoToShop={() => user?.features?.marketplace && setCurrentScreen('marketplace')}
+            onGoToPania={() => user?.features?.marketplace && setCurrentScreen('pania')}
+            onGoToBarcode={() => user?.features?.marketplace && setCurrentScreen('pania_barcode')}
           />
       )}
 
