@@ -81,6 +81,8 @@ export const LanguageProvider = ({ children }) => {
     };
 
     const isRTL = language === 'ar';
+    // When I18nManager.isRTL is active, native layout mirrors `row`; use row-reverse only as a manual fallback before restart.
+    const flexDir = isRTL ? (I18nManager.isRTL ? 'row' : 'row-reverse') : 'row';
 
     const value = {
         language,
@@ -88,7 +90,9 @@ export const LanguageProvider = ({ children }) => {
         t,
         isRTL,
         tAlign: isRTL ? 'right' : 'left',
-        flexDir: isRTL ? 'row-reverse' : 'row',
+        flexDir,
+        /** Use for cards/lists with fixed child order (image → info → action); keeps the same visual layout in FR and AR. */
+        flexDirNatural: 'row',
         flexDirOpposite: isRTL ? 'row' : 'row-reverse',
         writingDirection: isRTL ? 'rtl' : 'ltr',
         alignItems: isRTL ? 'flex-end' : 'flex-start',

@@ -4,12 +4,12 @@ import {
     FlatList, ActivityIndicator, Alert, Animated, Easing
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShoppingBag, Plus, Minus, Trash2, ArrowLeft, Barcode as BarcodeIcon, Tag, Package } from 'lucide-react-native';
+import { ShoppingBag, Plus, Minus, Trash2, Barcode as BarcodeIcon, Tag, Package } from 'lucide-react-native';
 import axios from 'axios';
 import { useLanguage } from '../services/LanguageContext';
 
 const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
-    const { t, flexDir, tAlign, isRTL, language } = useLanguage();
+    const { t, flexDir, flexDirNatural, tAlign, isRTL, language } = useLanguage();
     const [pantry, setPantry] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -95,13 +95,11 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
         const isActionLoading = actionLoadingId === item.id;
 
         return (
-            <View style={styles.itemCard}>
-                {/* Left accent */}
+            <View style={[styles.itemCard, { flexDirection: flexDir }]}>
                 <View style={styles.itemAccentBar} />
 
                 <View style={styles.itemInner}>
-                    {/* Icon + Info */}
-                    <View style={[styles.itemRow, { flexDirection: flexDir }]}>
+                    <View style={[styles.itemRow, { flexDirection: flexDirNatural }]}>
                         <View style={styles.itemIconBox}>
                             <Package size={18} color="#6366f1" />
                         </View>
@@ -109,7 +107,7 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                             <Text style={[styles.itemName, { textAlign: tAlign }]} numberOfLines={1}>
                                 {item.product.name}
                             </Text>
-                            <Text style={styles.itemUnitPrice}>
+                            <Text style={[styles.itemUnitPrice, { textAlign: tAlign }]}>
                                 {item.product.price?.toFixed(2)} DH / u
                             </Text>
                         </View>
@@ -142,13 +140,13 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                     <View style={[styles.itemFooter, { flexDirection: flexDir }]}>
                         <TouchableOpacity
                             onPress={() => removeItem(item.id)}
-                            style={styles.removeBtn}
+                            style={[styles.removeBtn, { flexDirection: flexDir }]}
                             disabled={!!actionLoadingId}
                         >
                             <Trash2 size={12} color="#ef4444" />
                             <Text style={styles.removeBtnText}>{language === 'fr' ? 'Retirer' : 'حذف'}</Text>
                         </TouchableOpacity>
-                        <Text style={styles.subtotal}>{subtotal.toFixed(2)} DH</Text>
+                        <Text style={[styles.subtotal, { textAlign: tAlign }]}>{subtotal.toFixed(2)} DH</Text>
                     </View>
                 </View>
             </View>
@@ -157,15 +155,8 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.headerBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <View style={styles.headerBtnInner}>
-                        <ArrowLeft color="#1e293b" size={20} style={isRTL ? { transform: [{ scaleX: -1 }] } : null} />
-                    </View>
-                </TouchableOpacity>
-
-                <View style={{ alignItems: 'center' }}>
+            <View style={styles.header}>
+                <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>
                         {language === 'fr' ? 'Ma Pania 🧺' : 'سلتي 🧺'}
                     </Text>
@@ -174,14 +165,25 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                     )}
                 </View>
 
-                {pantry?.items?.length > 0 ? (
-                    <TouchableOpacity onPress={clearPantry} style={styles.headerBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <View style={[styles.headerBtnInner, { borderColor: '#fecaca', backgroundColor: '#fef2f2' }]}>
+                <TouchableOpacity
+                    onPress={onBack}
+                    style={[styles.headerBackBtn, isRTL ? styles.headerBackBtnRtl : styles.headerBackBtnLtr]}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel={t('common.back')}
+                >
+                    <Text style={styles.headerBackArrow}>{isRTL ? '→' : '←'}</Text>
+                </TouchableOpacity>
+
+                {pantry?.items?.length > 0 && (
+                    <TouchableOpacity
+                        onPress={clearPantry}
+                        style={[styles.headerActionBtn, isRTL ? styles.headerActionBtnRtl : styles.headerActionBtnLtr]}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <View style={styles.headerActionBtnInner}>
                             <Trash2 color="#ef4444" size={17} />
                         </View>
                     </TouchableOpacity>
-                ) : (
-                    <View style={{ width: 40 }} />
                 )}
             </View>
 
@@ -208,7 +210,7 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                     {/* Footer */}
                     <View style={styles.footer}>
                         <View style={[styles.summaryRow, { flexDirection: flexDir }]}>
-                            <Text style={styles.summaryLabel}>{language === 'fr' ? 'Articles' : 'السلع'}</Text>
+                            <Text style={[styles.summaryLabel, { textAlign: tAlign }]}>{language === 'fr' ? 'Articles' : 'السلع'}</Text>
                             <View style={styles.summaryBadge}>
                                 <Text style={styles.summaryBadgeText}>{itemsCount}</Text>
                             </View>
@@ -217,8 +219,8 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                         <View style={styles.divider} />
 
                         <View style={[styles.summaryRow, { flexDirection: flexDir }]}>
-                            <Text style={styles.totalLabel}>{language === 'fr' ? 'Total Estimé' : 'التقدير الإجمالي'}</Text>
-                            <Text style={styles.totalValue}>{total.toFixed(2)} DH</Text>
+                            <Text style={[styles.totalLabel, { textAlign: tAlign }]}>{language === 'fr' ? 'Total Estimé' : 'التقدير الإجمالي'}</Text>
+                            <Text style={[styles.totalValue, { textAlign: tAlign }]}>{total.toFixed(2)} DH</Text>
                         </View>
 
                         <TouchableOpacity
@@ -240,10 +242,10 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
                     <View style={styles.emptyIconBg}>
                         <ShoppingBag size={42} color="#6366f1" />
                     </View>
-                    <Text style={styles.emptyTitle}>
+                    <Text style={[styles.emptyTitle, { textAlign: tAlign }]}>
                         {language === 'fr' ? 'Votre Pania est vide' : 'سلتك فارغة حاليًا'}
                     </Text>
-                    <Text style={styles.emptySub}>
+                    <Text style={[styles.emptySub, { textAlign: tAlign }]}>
                         {language === 'fr' ? 'Ajoutez des articles depuis la boutique' : 'أضف بعض السلع من المتجر أولاً'}
                     </Text>
                     <TouchableOpacity style={styles.emptyBtn} onPress={onBack}>
@@ -260,12 +262,49 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f8fafc' },
 
-    // Header
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    headerBtnInner: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
+    header: {
+        position: 'relative',
+        minHeight: 56,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 64,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    headerCenter: { alignItems: 'center' },
     headerTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
     headerSub: { fontSize: 11, color: '#94a3b8', fontWeight: '500', marginTop: 1 },
+    headerBackBtn: {
+        position: 'absolute',
+        top: 10,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#f8fafc',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        zIndex: 2,
+    },
+    headerBackBtnLtr: { left: 18 },
+    headerBackBtnRtl: { right: 18 },
+    headerBackArrow: { fontSize: 24, color: '#1e293b', fontWeight: '700', lineHeight: 28 },
+    headerActionBtn: { position: 'absolute', top: 10, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+    headerActionBtnLtr: { right: 18 },
+    headerActionBtnRtl: { left: 18 },
+    headerActionBtnInner: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: '#fef2f2',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#fecaca',
+    },
 
     topAccent: { height: 3, backgroundColor: '#6366f1' },
 
@@ -275,7 +314,7 @@ const styles = StyleSheet.create({
     list: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
 
     // Item card
-    itemCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 16, marginBottom: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#94a3b8', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1 },
+    itemCard: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#94a3b8', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1 },
     itemAccentBar: { width: 4, backgroundColor: '#6366f1' },
     itemInner: { flex: 1, paddingHorizontal: 12, paddingVertical: 11 },
     itemRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
@@ -290,7 +329,7 @@ const styles = StyleSheet.create({
     qtyText: { fontSize: 13, fontWeight: '800', color: '#0f172a', minWidth: 22, textAlign: 'center' },
 
     itemFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    removeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 9, borderRadius: 8, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca' },
+    removeBtn: { alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 9, borderRadius: 8, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca' },
     removeBtnText: { color: '#ef4444', fontSize: 11, fontWeight: '600' },
     subtotal: { fontSize: 15, fontWeight: '800', color: '#6366f1' },
 
