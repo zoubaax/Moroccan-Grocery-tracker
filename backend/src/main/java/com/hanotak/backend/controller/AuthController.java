@@ -82,7 +82,7 @@ public class AuthController {
   // We can add logic here or use PreAuthorize if we want strictly restricted creation.
   // For the sake of the exercise, let's allow open register for some or restrict.
   // The user said: admin creates staff and moul7anout accounts, Clients can be created by moul7anout.
-  public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+  public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, Authentication authentication) {
     if (userRepository.existsByEmail(signUpRequest.getEmail())) {
       return ResponseEntity
           .badRequest()
@@ -125,6 +125,17 @@ public class AuthController {
     if (role.getName() == ERole.ROLE_MOUL7ANOUT) {
       user.setSubscriptionPlan(ESubscriptionPlan.START);
     }
+
+    // If an authenticated Moul 7anout is creating a client, link them directly.
+    if (role.getName() == ERole.ROLE_CLIENT && authentication != null && authentication.isAuthenticated()) {
+      UserDetailsImpl callerDetails = (UserDetailsImpl) authentication.getPrincipal();
+      userRepository.findById(callerDetails.getId()).ifPresent(caller -> {
+        if (caller.getRole() != null && caller.getRole().getName() == ERole.ROLE_MOUL7ANOUT) {
+          user.setShopOwnerId(caller.getId());
+        }
+      });
+    }
+
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

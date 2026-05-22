@@ -42,6 +42,11 @@ public class User {
   @Column(length = 20)
   private ESubscriptionPlan subscriptionPlan = ESubscriptionPlan.START;
 
+  /** For ROLE_CLIENT users: the ID of the Moul 7anout who created/owns them.
+   *  Set at registration time. Used to resolve marketplace access without needing purchase history. */
+  @Column(name = "shop_owner_id")
+  private Long shopOwnerId;
+
   public User() {}
 
   public User(String name, String email, String password, String phone) {
@@ -67,4 +72,6 @@ public class User {
   public void setCurrentBalance(BigDecimal currentBalance) { this.currentBalance = currentBalance; }
   public ESubscriptionPlan getSubscriptionPlan() { return subscriptionPlan; }
   public void setSubscriptionPlan(ESubscriptionPlan subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; }
+  public Long getShopOwnerId() { return shopOwnerId; }
+  public void setShopOwnerId(Long shopOwnerId) { this.shopOwnerId = shopOwnerId; }
 }

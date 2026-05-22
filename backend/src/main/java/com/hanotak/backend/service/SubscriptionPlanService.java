@@ -13,6 +13,7 @@ import com.hanotak.backend.model.ESubscriptionPlan;
 import com.hanotak.backend.model.Sale;
 import com.hanotak.backend.model.User;
 import com.hanotak.backend.repository.SaleRepository;
+import com.hanotak.backend.repository.UserRepository;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,6 +22,9 @@ public class SubscriptionPlanService {
 
     @Autowired
     private SaleRepository saleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public ESubscriptionPlan resolvePlan(User user) {
         if (user == null || user.getSubscriptionPlan() == null) {
@@ -38,21 +42,33 @@ public class SubscriptionPlanService {
     }
 
     /**
+     * Finds the shop owner (Moul 7anout) associated with the given client.
+     */
+    private User resolveClientShopOwner(User client) {
+        if (client.getShopOwnerId() != null) {
+            return userRepository.findById(client.getShopOwnerId()).orElse(null);
+        }
+        List<Sale> purchases = saleRepository.findByClientIdOrderByTransactionDateDesc(client.getId());
+        if (purchases != null && !purchases.isEmpty()) {
+            return purchases.get(0).getShopOwner();
+        }
+        return null;
+    }
+
+    /**
      * For clients: resolves marketplace access from their shopkeeper's plan.
-     * Looks at the most recent purchase to find the associated shop owner.
-     * If no purchases exist, defaults to marketplace=false (safe fallback).
      */
     private boolean resolveClientMarketplace(User client) {
-        List<Sale> purchases = saleRepository.findByClientIdOrderByTransactionDateDesc(client.getId());
-        if (purchases == null || purchases.isEmpty()) {
-            return false;
-        }
-        User shopOwner = purchases.get(0).getShopOwner();
-        if (shopOwner == null) {
-            return false;
-        }
-        ESubscriptionPlan ownerPlan = resolvePlan(shopOwner);
-        return ownerPlan.hasMarketplace();
+        User shopOwner = resolveClientShopOwner(client);
+        return shopOwner != null && resolvePlan(shopOwner).hasMarketplace();
+    }
+
+    /**
+     * For clients: resolves AI automation access from their shopkeeper's plan.
+     */
+    private boolean resolveClientAiAutomation(User client) {
+        User shopOwner = resolveClientShopOwner(client);
+        return shopOwner != null && resolvePlan(shopOwner).hasAiAutomation();
     }
 
     public SubscriptionFeaturesDto resolveFeatures(User user) {
@@ -61,7 +77,8 @@ public class SubscriptionPlanService {
         }
         if (user.getRole() != null && user.getRole().getName() == ERole.ROLE_CLIENT) {
             boolean marketplace = resolveClientMarketplace(user);
-            return new SubscriptionFeaturesDto(true, true, marketplace, false);
+            boolean aiAutomation = resolveClientAiAutomation(user);
+            return new SubscriptionFeaturesDto(true, true, marketplace, aiAutomation);
         }
         ESubscriptionPlan plan = resolvePlan(user);
         return new SubscriptionFeaturesDto(

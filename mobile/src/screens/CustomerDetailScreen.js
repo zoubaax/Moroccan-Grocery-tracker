@@ -271,39 +271,38 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl, features }) => 
                             <Text style={styles.shareCredentialsText}>{t('customerDetail.grantAppAccess')}</Text>
                         </TouchableOpacity>
 
-                        {hasDebt && (
-                            <View style={{ flexDirection: flexDir, gap: 10, width: '100%', marginTop: 10 }}>
-                                <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
-                                    onPress={() => handleSendAIReminder('whatsapp')}
-                                    disabled={isReminderLoading}
-                                >
-                                    {isReminderLoading ? (
-                                        <ActivityIndicator size="small" color="#ef4444" />
-                                    ) : (
-                                        <>
-                                            <Bot size={16} color="#ef4444" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
-                                            <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>{t('customerDetail.whatsappAi')}</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
+                        {/* AI reminder buttons — always shown when client has a phone, not only when they have debt */}
+                        <View style={{ flexDirection: flexDir, gap: 10, width: '100%', marginTop: 10 }}>
+                            <TouchableOpacity 
+                                style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
+                                onPress={() => handleSendAIReminder('whatsapp')}
+                                disabled={isReminderLoading}
+                            >
+                                {isReminderLoading ? (
+                                    <ActivityIndicator size="small" color="#ef4444" />
+                                ) : (
+                                    <>
+                                        <Bot size={16} color="#ef4444" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
+                                        <Text style={[styles.shareCredentialsText, { color: '#ef4444' }]}>{t('customerDetail.whatsappAi')}</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
 
-                                <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
-                                    onPress={() => handleSendAIReminder('call')}
-                                    disabled={isCallLoading}
-                                >
-                                    {isCallLoading ? (
-                                        <ActivityIndicator size="small" color="#22c55e" />
-                                    ) : (
-                                        <>
-                                            <Phone size={16} color="#22c55e" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
-                                            <Text style={[styles.shareCredentialsText, { color: '#22c55e' }]}>{t('customerDetail.callAi')}</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                            <TouchableOpacity 
+                                style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
+                                onPress={() => handleSendAIReminder('call')}
+                                disabled={isCallLoading}
+                            >
+                                {isCallLoading ? (
+                                    <ActivityIndicator size="small" color="#22c55e" />
+                                ) : (
+                                    <>
+                                        <Phone size={16} color="#22c55e" style={isRTL ? { marginLeft: 8 } : { marginRight: 8 }} />
+                                        <Text style={[styles.shareCredentialsText, { color: '#22c55e' }]}>{t('customerDetail.callAi')}</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 ) : null}
             </View>
