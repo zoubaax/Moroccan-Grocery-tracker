@@ -22,6 +22,8 @@ import com.hanotak.backend.repository.RoleRepository;
 import com.hanotak.backend.repository.UserRepository;
 import com.hanotak.backend.security.jwt.JwtUtils;
 import com.hanotak.backend.security.services.UserDetailsImpl;
+import com.hanotak.backend.model.ESubscriptionPlan;
+import com.hanotak.backend.service.SubscriptionPlanService;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -43,6 +45,9 @@ public class AuthController {
   @Autowired
   JwtUtils jwtUtils;
 
+  @Autowired
+  SubscriptionPlanService subscriptionPlanService;
+
   @PostMapping("/login")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -58,12 +63,18 @@ public class AuthController {
         .findFirst()
         .orElse(null);
 
-    return ResponseEntity.ok(new JwtResponse(jwt, 
-                         userDetails.getId(), 
-                         userDetails.getName(), 
-                         userDetails.getEmail(), 
+    User user = userRepository.findById(userDetails.getId())
+        .orElseThrow(() -> new RuntimeException("Error: User not found."));
+    var status = subscriptionPlanService.resolveStatus(user);
+
+    return ResponseEntity.ok(new JwtResponse(jwt,
+                         userDetails.getId(),
+                         userDetails.getName(),
+                         userDetails.getEmail(),
                          userDetails.getPhone(),
-                         role));
+                         role,
+                         status.getPlan(),
+                         status.getFeatures()));
   }
 
   @PostMapping("/register")
@@ -111,6 +122,9 @@ public class AuthController {
     }
 
     user.setRole(role);
+    if (role.getName() == ERole.ROLE_MOUL7ANOUT) {
+      user.setSubscriptionPlan(ESubscriptionPlan.START);
+    }
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

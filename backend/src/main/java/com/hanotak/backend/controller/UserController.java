@@ -10,8 +10,9 @@ import com.hanotak.backend.model.User;
 import com.hanotak.backend.repository.UserRepository;
 import com.hanotak.backend.security.services.UserDetailsImpl;
 import com.hanotak.backend.dto.MessageResponse;
+import com.hanotak.backend.dto.UpdateSubscriptionRequest;
+import com.hanotak.backend.service.SubscriptionPlanService;
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -22,6 +23,9 @@ public class UserController {
 
   @Autowired
   private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+  @Autowired
+  private SubscriptionPlanService subscriptionPlanService;
 
   @GetMapping("/me")
   @PreAuthorize("isAuthenticated()")
@@ -80,6 +84,23 @@ public class UserController {
     
     userService.saveUser(user);
     return ResponseEntity.ok(user);
+  }
+
+  @PutMapping("/{id}/subscription")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<?> updateSubscription(@PathVariable Long id, @RequestBody UpdateSubscriptionRequest request) {
+    try {
+      if (request.getPlan() == null) {
+        return ResponseEntity.badRequest().body(new MessageResponse("Plan is required."));
+      }
+      User user = userService.getUserById(id)
+          .orElseThrow(() -> new RuntimeException("Error: User not found."));
+      subscriptionPlanService.assignPlan(user, request.getPlan());
+      userService.saveUser(user);
+      return ResponseEntity.ok(subscriptionPlanService.resolveStatus(user));
+    } catch (RuntimeException ex) {
+      return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
+    }
   }
 
   @PutMapping("/{id}/password")

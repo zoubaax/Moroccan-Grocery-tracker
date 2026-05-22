@@ -8,14 +8,19 @@ public class JwtResponse {
   private String email;
   private String phone;
   private String role;
+  private String subscriptionPlan;
+  private SubscriptionFeaturesDto features;
 
-  public JwtResponse(String accessToken, Long id, String name, String email, String phone, String role) {
+  public JwtResponse(String accessToken, Long id, String name, String email, String phone, String role,
+      String subscriptionPlan, SubscriptionFeaturesDto features) {
     this.token = accessToken;
     this.id = id;
     this.name = name;
     this.email = email;
     this.phone = phone;
     this.role = role;
+    this.subscriptionPlan = subscriptionPlan;
+    this.features = features;
   }
 
   public String getToken() { return token; }
@@ -32,4 +37,8 @@ public class JwtResponse {
   public void setPhone(String phone) { this.phone = phone; }
   public String getRole() { return role; }
   public void setRole(String role) { this.role = role; }
+  public String getSubscriptionPlan() { return subscriptionPlan; }
+  public void setSubscriptionPlan(String subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; }
+  public SubscriptionFeaturesDto getFeatures() { return features; }
+  public void setFeatures(SubscriptionFeaturesDto features) { this.features = features; }
 }

@@ -7,7 +7,9 @@ import com.hanotak.backend.model.Sale;
 import com.hanotak.backend.model.User;
 import com.hanotak.backend.repository.UserRepository;
 import com.hanotak.backend.security.services.UserDetailsImpl;
+import com.hanotak.backend.model.EPlanFeature;
 import com.hanotak.backend.service.PantryService;
+import com.hanotak.backend.service.SubscriptionPlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,9 @@ public class PantryController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SubscriptionPlanService subscriptionPlanService;
 
     private User getAuthenticatedUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -123,7 +128,11 @@ public class PantryController {
 
     @GetMapping("/scan/{token}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MOUL7ANOUT')")
-    public ResponseEntity<?> scanBarcode(@PathVariable String token) {
+    public ResponseEntity<?> scanBarcode(@PathVariable String token, Authentication authentication) {
+        User shopOwner = getAuthenticatedUser(authentication);
+        if (shopOwner != null) {
+            subscriptionPlanService.requireFeature(shopOwner, EPlanFeature.MARKETPLACE);
+        }
         try {
             ClientPantry pantry = pantryService.resolvePantryBarcodeToken(token);
             return ResponseEntity.ok(pantry);
@@ -139,6 +148,7 @@ public class PantryController {
         if (shopOwner == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Épicier non trouvé."));
         }
+        subscriptionPlanService.requireFeature(shopOwner, EPlanFeature.MARKETPLACE);
         try {
             Sale sale = pantryService.checkoutPantry(request.getPantryId(), request.getPaymentMethod(), shopOwner);
             return ResponseEntity.ok(sale);

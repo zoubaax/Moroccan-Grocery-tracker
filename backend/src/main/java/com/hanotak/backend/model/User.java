@@ -38,6 +38,10 @@ public class User {
   @Column(nullable = false, columnDefinition = "DECIMAL(38,2) DEFAULT 0")
   private BigDecimal currentBalance = BigDecimal.ZERO;
 
+  @Enumerated(EnumType.STRING)
+  @Column(length = 20)
+  private ESubscriptionPlan subscriptionPlan = ESubscriptionPlan.START;
+
   public User() {}
 
   public User(String name, String email, String password, String phone) {
@@ -61,4 +65,6 @@ public class User {
   public void setRole(Role role) { this.role = role; }
   public BigDecimal getCurrentBalance() { return currentBalance; }
   public void setCurrentBalance(BigDecimal currentBalance) { this.currentBalance = currentBalance; }
+  public ESubscriptionPlan getSubscriptionPlan() { return subscriptionPlan; }
+  public void setSubscriptionPlan(ESubscriptionPlan subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; }
 }

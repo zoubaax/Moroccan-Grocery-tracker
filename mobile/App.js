@@ -73,8 +73,19 @@ function AppContent() {
   };
 
   const handleSelectPortalMode = (mode) => {
-      setSaleMode(mode);
-      if (mode === 'CREDIT') {
+      const features = user?.features || { sales: true, credit: true, marketplace: false, aiAutomation: false };
+
+      if (mode === 'MARKETPLACE' && !features.marketplace) {
+          Alert.alert(t('common.error'), t('subscription.marketplaceBlocked'));
+          return;
+      }
+      if (mode === 'AI' && !features.aiAutomation) {
+          Alert.alert(t('common.error'), t('subscription.aiBlocked'));
+          return;
+      }
+
+      setSaleMode(mode === 'AI' ? 'CREDIT' : (mode === 'MARKETPLACE' ? 'NORMAL' : mode));
+      if (mode === 'CREDIT' || mode === 'AI') {
           setCurrentScreen('customer_search');
       } else if (mode === 'STATS') {
           setCurrentScreen('sales_report');
@@ -96,6 +107,10 @@ function AppContent() {
 
   const handleScan = async (barcode) => {
     if (barcode && barcode.startsWith('PAN-')) {
+        if (user?.role === 'ROLE_MOUL7ANOUT' && !user?.features?.marketplace) {
+            Alert.alert(t('common.error'), t('subscription.marketplaceBlocked'));
+            return;
+        }
         setScannedToken(barcode);
         setCurrentScreen('pantry_order');
         return;
@@ -163,6 +178,8 @@ function AppContent() {
             userName={user?.username || user?.name || 'Moul 7anout'}
             onSelectMode={handleSelectPortalMode}
             onLogout={handleLogout}
+            features={user?.features}
+            subscriptionPlan={user?.subscriptionPlan}
           />
       )}
 
@@ -197,6 +214,7 @@ function AppContent() {
             customer={selectedCustomerProfile}
             token={user?.token}
             apiUrl={API_URL}
+            features={user?.features}
             onBack={() => setCurrentScreen('customer_search')}
           />
       )}

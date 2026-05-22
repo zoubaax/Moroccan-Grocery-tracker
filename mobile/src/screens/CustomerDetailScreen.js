@@ -5,8 +5,9 @@ import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
 import { useLanguage } from '../services/LanguageContext';
 
-const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
+const CustomerDetailScreen = ({ customer, onBack, token, apiUrl, features }) => {
     const { t, language, isRTL, flexDir, tAlign } = useLanguage();
+    const aiEnabled = features?.aiAutomation !== false;
     const [currentCustomer, setCurrentCustomer] = useState(customer);
     const [transactions, setTransactions] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -44,6 +45,10 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
     }, []);
 
     const handleSendAIReminder = async (type = 'whatsapp') => {
+        if (!aiEnabled) {
+            Alert.alert(t('common.error'), t('subscription.aiBlocked'));
+            return;
+        }
         if (!currentCustomer.phone) {
             Alert.alert(t('common.error'), t('customerDetail.errorNoPhone'));
             return;
@@ -269,7 +274,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                         {hasDebt && (
                             <View style={{ flexDirection: flexDir, gap: 10, width: '100%', marginTop: 10 }}>
                                 <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center', flexDirection: flexDir }]}
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#fef2f2', borderColor: '#fecaca', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
                                     onPress={() => handleSendAIReminder('whatsapp')}
                                     disabled={isReminderLoading}
                                 >
@@ -284,7 +289,7 @@ const CustomerDetailScreen = ({ customer, onBack, token, apiUrl }) => {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity 
-                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center', flexDirection: flexDir }]}
+                                    style={[styles.shareCredentialsBtn, { marginTop: 0, flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', justifyContent: 'center', flexDirection: flexDir, opacity: aiEnabled ? 1 : 0.55 }]}
                                     onPress={() => handleSendAIReminder('call')}
                                     disabled={isCallLoading}
                                 >

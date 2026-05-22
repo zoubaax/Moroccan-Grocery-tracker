@@ -1,6 +1,7 @@
 package com.hanotak.backend.utils;
 
 import com.hanotak.backend.model.ERole;
+import com.hanotak.backend.model.ESubscriptionPlan;
 import com.hanotak.backend.model.Role;
 import com.hanotak.backend.model.User;
 import com.hanotak.backend.repository.RoleRepository;
@@ -42,9 +43,21 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail(adminEmail);
             admin.setPassword(passwordEncoder.encode("admin@123"));
             admin.setRole(adminRole);
+            admin.setSubscriptionPlan(ESubscriptionPlan.ULTIMATE);
 
             userRepository.save(admin);
             System.out.println("Default Admin created: " + adminEmail + " / admin@123");
+        }
+
+        Role moulRole = roleRepository.findByName(ERole.ROLE_MOUL7ANOUT).orElse(null);
+        if (moulRole != null) {
+            userRepository.findAll().forEach(user -> {
+                if (user.getRole() != null && user.getRole().getName() == ERole.ROLE_MOUL7ANOUT
+                        && user.getSubscriptionPlan() == null) {
+                    user.setSubscriptionPlan(ESubscriptionPlan.START);
+                    userRepository.save(user);
+                }
+            });
         }
     }
 }

@@ -80,9 +80,19 @@ const LoginScreen = ({ onLogin }) => {
             const response = await axios.post(`${API_URL}/auth/login`, { email: loginEmail, password: loginPassword });
             const allowedRoles = ['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MOUL7ANOUT', 'ROLE_CLIENT'];
             if (allowedRoles.includes(response.data.role)) {
-                // Securely save credentials locally for subsequent biometric bypass
                 await AsyncStorage.setItem('saved_credentials', JSON.stringify({ email: loginEmail, password: loginPassword }));
-                onLogin(response.data);
+                const loginUser = {
+                    ...response.data,
+                    token: response.data.token,
+                    subscriptionPlan: response.data.subscriptionPlan || 'START',
+                    features: response.data.features || {
+                        sales: true,
+                        credit: true,
+                        marketplace: false,
+                        aiAutomation: false,
+                    },
+                };
+                onLogin(loginUser);
             } else {
                 setError(t('login.errorUnauthorized'));
             }

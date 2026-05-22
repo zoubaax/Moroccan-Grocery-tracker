@@ -119,6 +119,24 @@ const UsersManagement = () => {
         }
     };
 
+    const handlePlanChange = async (userId, plan) => {
+        try {
+            await api.put(`/users/${userId}/subscription`, { plan });
+            fetchUsers();
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Failed to update subscription plan';
+            alert(msg);
+        }
+    };
+
+    const getPlanBadgeClass = (plan) => {
+        switch (plan) {
+            case 'ULTIMATE': return 'bg-amber-100 text-amber-800 border-amber-200';
+            case 'PRO': return 'bg-violet-100 text-violet-800 border-violet-200';
+            default: return 'bg-slate-100 text-slate-700 border-slate-200';
+        }
+    };
+
     const handleResetPassword = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -235,13 +253,14 @@ const UsersManagement = () => {
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {isLoading ? (
-                                    <tr><td colSpan="4" className="px-6 py-12 text-center"><Loader2 className="animate-spin mx-auto text-indigo-600" size={32} /></td></tr>
+                                    <tr><td colSpan="5" className="px-6 py-12 text-center"><Loader2 className="animate-spin mx-auto text-indigo-600" size={32} /></td></tr>
                                 ) : filteredUsers.map((user) => (
                                     <tr key={user.id} className="hover:bg-gray-50 transition-colors group">
                                         <td className="px-6 py-4">
@@ -255,6 +274,21 @@ const UsersManagement = () => {
                                                 {getRoleIcon(user.role)}
                                                 {user.role?.name?.replace('ROLE_', '') || 'CLIENT'}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {user.role?.name === 'ROLE_MOUL7ANOUT' ? (
+                                                <select
+                                                    className={`text-xs font-bold px-2 py-1 rounded-lg border outline-none focus:ring-2 focus:ring-indigo-500/20 ${getPlanBadgeClass(user.subscriptionPlan || 'START')}`}
+                                                    value={user.subscriptionPlan || 'START'}
+                                                    onChange={(e) => handlePlanChange(user.id, e.target.value)}
+                                                >
+                                                    <option value="START">Start</option>
+                                                    <option value="PRO">Pro</option>
+                                                    <option value="ULTIMATE">Ultimate</option>
+                                                </select>
+                                            ) : (
+                                                <span className="text-xs text-gray-400">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4"><span className="px-2 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600 border border-green-100">ACTIVE</span></td>
                                         <td className="px-6 py-4 text-right">
