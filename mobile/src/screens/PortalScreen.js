@@ -11,6 +11,12 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
     const f = features || { sales: true, credit: true, marketplace: false, aiAutomation: false };
     const plan = subscriptionPlan || 'START';
 
+    // Visibility rules:
+    // Marketplace card: show for START (locked) and PRO (unlocked) — ULTIMATE scans PAN- from Vente normale
+    // AI card: show for START only (locked for marketing) — PRO doesn't have it, ULTIMATE accesses it inside Carnet de crédits
+    const showMarketplaceCard = plan !== 'ULTIMATE';
+    const showAiCard = plan === 'START';
+
     const openOrUpgrade = (enabled, targetPlan, mode) => {
         if (enabled) {
             onSelectMode(mode);
@@ -24,7 +30,6 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
         targetPlan,
         mode,
         cardStyle,
-        iconColor,
         arrowColor,
         Icon,
         titleKey,
@@ -105,12 +110,12 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                 <View style={styles.content}>
                     <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>{t('portal.commercialManagement')}</Text>
 
+                    {/* Vente normale — always visible, always unlocked */}
                     {renderActionCard({
-                        enabled: f.sales,
+                        enabled: true,
                         targetPlan: 'START',
                         mode: 'NORMAL',
                         cardStyle: styles.sellCard,
-                        iconColor: '#fff',
                         arrowColor: '#4f46e5',
                         Icon: ShoppingBag,
                         titleKey: 'portal.caisseTitle',
@@ -118,12 +123,12 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                         lockLabelKey: 'subscription.lockSales',
                     })}
 
+                    {/* Carnet de crédits — always visible, always unlocked */}
                     {renderActionCard({
-                        enabled: f.credit,
+                        enabled: true,
                         targetPlan: 'START',
                         mode: 'CREDIT',
                         cardStyle: styles.creditCard,
-                        iconColor: '#fff',
                         arrowColor: '#0ea5e9',
                         Icon: Users,
                         titleKey: 'portal.creditTitle',
@@ -131,12 +136,12 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                         lockLabelKey: 'subscription.lockCredit',
                     })}
 
-                    {renderActionCard({
+                    {/* Marketplace — shown for START (locked) and PRO (unlocked). Hidden for ULTIMATE (accessible via scanner). */}
+                    {showMarketplaceCard && renderActionCard({
                         enabled: f.marketplace,
                         targetPlan: 'PRO',
                         mode: 'MARKETPLACE',
                         cardStyle: styles.marketplaceCard,
-                        iconColor: '#fff',
                         arrowColor: '#8b5cf6',
                         Icon: Store,
                         titleKey: 'portal.marketplaceTitle',
@@ -144,12 +149,13 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                         lockLabelKey: 'subscription.lockMarketplace',
                     })}
 
-                    {renderActionCard({
-                        enabled: f.aiAutomation,
+                    {/* AI Automation — shown for START only (locked, for marketing). PRO & ULTIMATE don't see this card.
+                        ULTIMATE accesses AI inside CustomerDetailScreen (Carnet de crédits flow). */}
+                    {showAiCard && renderActionCard({
+                        enabled: false,
                         targetPlan: 'ULTIMATE',
                         mode: 'AI',
                         cardStyle: styles.aiCard,
-                        iconColor: '#fff',
                         arrowColor: '#f59e0b',
                         Icon: Bot,
                         titleKey: 'portal.aiTitle',
@@ -157,12 +163,12 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                         lockLabelKey: 'subscription.lockAi',
                     })}
 
+                    {/* Statistiques — always visible, always unlocked */}
                     {renderActionCard({
-                        enabled: f.sales,
+                        enabled: true,
                         targetPlan: 'START',
                         mode: 'STATS',
                         cardStyle: styles.statsCardAction,
-                        iconColor: '#fff',
                         arrowColor: '#10b981',
                         Icon: BarChart2,
                         titleKey: 'portal.statsTitle',
