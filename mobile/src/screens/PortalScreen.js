@@ -12,8 +12,8 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
     const plan = subscriptionPlan || 'START';
 
     // Visibility rules:
-    // Marketplace card: show for START only (locked) — PRO & ULTIMATE access it via scanner detours from Vente normale.
-    // AI card: show for START & PRO (locked) — ULTIMATE accesses it inside Carnet de crédits (CustomerDetailScreen).
+    // • Marketplace card : START → shown locked | PRO → hidden (accessed via scanner) | ULTIMATE → hidden
+    // • AI Automation    : START → shown locked | PRO  → shown locked                  | ULTIMATE → hidden (accessed inside CustomerDetailScreen)
     const showMarketplaceCard = plan === 'START';
     const showAiCard = plan !== 'ULTIMATE';
 
@@ -149,8 +149,7 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                         lockLabelKey: 'subscription.lockMarketplace',
                     })}
 
-                    {/* AI Automation — shown for START only (locked, for marketing). PRO & ULTIMATE don't see this card.
-                        ULTIMATE accesses AI inside CustomerDetailScreen (Carnet de crédits flow). */}
+                    {/* AI Automation — locked for START & PRO; hidden for ULTIMATE (accessible inside CustomerDetailScreen) */}
                     {showAiCard && renderActionCard({
                         enabled: false,
                         targetPlan: 'ULTIMATE',
