@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Image } from 'react-native';
-import { Trash2, Plus, Minus, CheckCircle, ShoppingBag, CreditCard, Banknote, ChevronLeft, Smartphone, Users } from 'lucide-react-native';
+import {
+    View, Text, StyleSheet, FlatList, TouchableOpacity,
+    ActivityIndicator, Alert, Image, ScrollView, Dimensions
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    Trash2, Plus, Minus, CheckCircle, ShoppingBag,
+    Banknote, ChevronLeft, Users, BookOpen, ArrowLeft, X
+} from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
 import { useLanguage } from '../services/LanguageContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete, onBack, selectedCustomer, onChooseCustomer }) => {
     const { t, isRTL, flexDir, tAlign } = useLanguage();
@@ -43,13 +51,13 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
                 items: cart.map(item => ({ barcode: item.barcode, quantity: item.quantity })),
                 customerId: selectedCustomer?.id
             };
-            
+
             await axios.post(`${API_URL}/sales/process`, saleData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             const mockSale = {
-                id: Math.floor(1000 + Math.random() * 9000), // Random 4-digit transaction reference for receipt
+                id: Math.floor(1000 + Math.random() * 9000),
                 transactionDate: new Date().toISOString(),
                 paymentMethod: paymentMethod,
                 totalAmount: total,
@@ -94,90 +102,105 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
     };
 
     const renderItem = ({ item }) => (
-        <View style={[styles.itemCard, { flexDirection: flexDir }]}>
-            {item.imageUrl ? (
-                <Image source={{ uri: item.imageUrl }} style={styles.productThumb} />
-            ) : (
-                <View style={styles.productThumbPlaceholder}>
-                    <ShoppingBag size={20} color="#94a3b8" />
-                </View>
-            )}
-            <View style={[styles.itemInfo, { marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0, alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <Text style={[styles.itemName, { textAlign: tAlign }]} numberOfLines={2}>{item.name}</Text>
-                <Text style={styles.itemBarcode}>{item.barcode}</Text>
-                <Text style={styles.itemPrice}>{item.price} DH</Text>
+        <View style={styles.itemCard}>
+            <View style={styles.itemThumbWrap}>
+                {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} style={styles.productThumb} />
+                ) : (
+                    <ShoppingBag size={22} color="#86a0cd" />
+                )}
             </View>
-            <View style={[styles.itemActions, { alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
+            <View style={[styles.itemInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <Text style={[styles.itemName, { textAlign: tAlign }]} numberOfLines={1}>{item.name}</Text>
+                <Text style={styles.itemBarcode}>{item.barcode}</Text>
+                <Text style={styles.itemPrice}>{(item.price * item.quantity).toFixed(2)} DH</Text>
+            </View>
+            <View style={styles.itemActions}>
                 <View style={[styles.qtyControl, { flexDirection: flexDir }]}>
                     <TouchableOpacity onPress={() => updateQty(item.id, -1)} style={styles.qtyBtn}>
-                        <Minus size={16} color="#4f46e5" />
+                        <Minus size={14} color="#002045" />
                     </TouchableOpacity>
                     <Text style={styles.qtyText}>{item.quantity}</Text>
-                    <TouchableOpacity onPress={() => updateQty(item.id, 1)} style={styles.qtyBtn}>
-                        <Plus size={16} color="#4f46e5" />
+                    <TouchableOpacity onPress={() => updateQty(item.id, 1)} style={styles.qtyBtnFill}>
+                        <Plus size={14} color="#fff" />
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
-                    <Trash2 size={20} color="#ef4444" />
+                    <Trash2 size={16} color="#ba1a1a" />
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+            {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={[styles.headerIcon, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
-                    <ChevronLeft size={24} color="#1e293b" />
+                <TouchableOpacity
+                    onPress={onBack}
+                    style={styles.headerIconBtn}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
+                    <ArrowLeft size={26} color="#002045" style={isRTL ? { transform: [{ scaleX: -1 }] } : null} />
                 </TouchableOpacity>
-                <Text style={styles.title}>{t('cart.checkoutTitle')}</Text>
-                <TouchableOpacity onPress={onClear}>
+                <Text style={styles.headerTitle}>7anoti</Text>
+                <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
                     <Text style={styles.clearText}>{t('cart.clearText')}</Text>
                 </TouchableOpacity>
             </View>
 
+            {/* Cart items list */}
             <FlatList
                 data={cart}
                 keyExtractor={item => item.id.toString()}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={
+                    <View style={[styles.listSectionHeader, { flexDirection: flexDir }]}>
+                        <Text style={styles.listSectionTitle}>{t('cart.checkoutTitle')}</Text>
+                        {cart.length > 0 && (
+                            <Text style={styles.listSectionCount}>{cart.length} articles</Text>
+                        )}
+                    </View>
+                }
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <ShoppingBag size={64} color="#e2e8f0" />
+                        <View style={styles.emptyIconBox}>
+                            <ShoppingBag size={40} color="#86a0cd" />
+                        </View>
                         <Text style={styles.emptyText}>{t('cart.emptyText')}</Text>
                     </View>
                 }
             />
 
-            <View style={styles.footer}>
+            {/* Sticky Bottom Panel */}
+            <View style={styles.bottomPanel}>
+                {/* Customer banner */}
                 {selectedCustomer && (
-                    <View style={[styles.customerCartBanner, { flexDirection: flexDir }]}>
-                        <View style={[styles.customerCartBannerInfo, { flexDirection: flexDir, gap: 8 }]}>
-                            <Users size={16} color="#4f46e5" />
-                            <Text style={styles.customerCartBannerText}>{t('cart.customerLabel', { name: selectedCustomer.name })}</Text>
+                    <View style={[styles.customerBanner, { flexDirection: flexDir }]}>
+                        <View style={[styles.customerBannerLeft, { flexDirection: flexDir }]}>
+                            <View style={styles.customerAvatarBox}>
+                                <Users size={14} color="#a14009" />
+                            </View>
+                            <Text style={styles.customerBannerText} numberOfLines={1}>{selectedCustomer.name}</Text>
                         </View>
-                        <TouchableOpacity onPress={onChooseCustomer} style={styles.changeCustomerBtn}>
-                            <Text style={styles.changeCustomerText}>{t('cart.changeText')}</Text>
+                        <TouchableOpacity onPress={onChooseCustomer} style={styles.changeBtn}>
+                            <Text style={styles.changeBtnText}>{t('cart.changeText')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <View style={[styles.paymentSection, { flexDirection: flexDir }]}>
-                    <TouchableOpacity 
+                {/* Payment method selector */}
+                <View style={[styles.paymentRow, { flexDirection: flexDir }]}>
+                    <TouchableOpacity
                         onPress={() => setPaymentMethod('CASH')}
-                        style={[styles.payBtn, paymentMethod === 'CASH' && styles.payBtnActive, { flexDirection: flexDir }]}
+                        style={[styles.payBtn, paymentMethod === 'CASH' && styles.payBtnActiveCash, { flexDirection: flexDir }]}
                     >
-                        <Banknote size={20} color={paymentMethod === 'CASH' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CASH' && styles.payTextActive]}>{t('cart.cashLabel')}</Text>
+                        <Banknote size={20} color={paymentMethod === 'CASH' ? '#002713' : '#43474e'} />
+                        <Text style={[styles.payBtnText, paymentMethod === 'CASH' && styles.payBtnTextActiveCash]}>{t('cart.cashLabel')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                        onPress={() => setPaymentMethod('CARD')}
-                        style={[styles.payBtn, paymentMethod === 'CARD' && styles.payBtnActive, { flexDirection: flexDir }]}
-                    >
-                        <CreditCard size={20} color={paymentMethod === 'CARD' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CARD' && styles.payTextActive]}>{t('cart.cardLabel')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => {
                             if (!selectedCustomer) {
                                 onChooseCustomer();
@@ -185,72 +208,179 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
                                 setPaymentMethod('CREDIT');
                             }
                         }}
-                        style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnCreditActive, { flexDirection: flexDir }]}
+                        style={[styles.payBtn, paymentMethod === 'CREDIT' && styles.payBtnActiveCarnet, { flexDirection: flexDir }]}
                     >
-                        <Users size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#94a3b8'} />
-                        <Text style={[styles.payText, paymentMethod === 'CREDIT' && styles.payTextActive]}>{t('cart.creditLabel')}</Text>
+                        <BookOpen size={20} color={paymentMethod === 'CREDIT' ? '#fff' : '#43474e'} />
+                        <Text style={[styles.payBtnText, paymentMethod === 'CREDIT' && styles.payBtnTextActiveCarnet]}>{t('cart.creditLabel')}</Text>
                     </TouchableOpacity>
                 </View>
 
+                {/* Total & Checkout */}
                 <View style={[styles.totalRow, { flexDirection: flexDir }]}>
-                    <Text style={styles.totalLabel}>{t('cart.total')}</Text>
-                    <Text style={styles.totalValue}>{total.toFixed(2)} DH</Text>
+                    <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                        <Text style={styles.totalLabel}>{t('cart.total')?.toUpperCase()}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                            <Text style={styles.totalValue}>{total.toFixed(2)}</Text>
+                            <Text style={styles.totalCurrency}> DH</Text>
+                        </View>
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.checkoutBtn, (cart.length === 0 || isLoading) && styles.disabled]}
+                        onPress={handleCheckout}
+                        disabled={cart.length === 0 || isLoading}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <>
+                                <CheckCircle size={22} color="#fff" />
+                                <Text style={styles.checkoutText}>{t('cart.checkoutBtn')}</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity 
-                    style={[styles.checkoutBtn, (cart.length === 0 || isLoading) && styles.disabled, { flexDirection: flexDir }]} 
-                    onPress={handleCheckout}
-                    disabled={cart.length === 0 || isLoading}
-                >
-                    {isLoading ? <ActivityIndicator color="#fff" /> : (
-                        <>
-                            <CheckCircle size={22} color="#fff" />
-                            <Text style={styles.checkoutText}>{t('cart.checkoutBtn')}</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
-    title: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', letterSpacing: 1 },
-    clearText: { fontSize: 13, fontWeight: 'bold', color: '#ef4444' },
-    list: { padding: 15 },
-    itemCard: { backgroundColor: '#fff', padding: 15, borderRadius: 15, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5 },
-    itemName: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
-    itemBarcode: { fontSize: 10, color: '#94a3b8', fontWeight: 'bold', marginTop: 2 },
-    itemPrice: { fontSize: 14, fontWeight: 'bold', color: '#4f46e5', marginTop: 5 },
-    itemInfo: { flex: 1, marginLeft: 12, marginRight: 10 },
-    productThumb: { width: 55, height: 55, borderRadius: 12, backgroundColor: '#f8fafc' },
-    productThumbPlaceholder: { width: 55, height: 55, borderRadius: 12, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center' },
-    itemActions: { alignItems: 'flex-end', gap: 10 },
-    qtyControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 10, padding: 4 },
-    qtyBtn: { padding: 5 },
-    qtyText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b', marginHorizontal: 10 },
-    empty: { alignItems: 'center', marginTop: 100 },
-    emptyText: { color: '#94a3b8', fontSize: 14, fontWeight: 'bold', marginTop: 10 },
-    footer: { backgroundColor: '#fff', padding: 20, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    totalLabel: { fontSize: 11, fontWeight: 'bold', color: '#64748b' },
-    totalValue: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    paymentSection: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-    payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: '#f1f5f9' },
-    payBtnActive: { backgroundColor: '#4f46e5' },
-    payBtnCreditActive: { backgroundColor: '#ef4444' },
-    payText: { fontSize: 12, fontWeight: 'bold', color: '#64748b' },
-    payTextActive: { color: '#fff' },
-    checkoutBtn: { height: 60, backgroundColor: '#1e293b', borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-    checkoutText: { color: '#fff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5 },
+    container: { flex: 1, backgroundColor: '#faf9fd' },
+
+    header: {
+        height: 70,
+        paddingTop: 8,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e3e2e6',
+    },
+    headerIconBtn: { padding: 10 },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: '#a14009' },
+    clearBtn: { padding: 8 },
+    clearText: { fontSize: 13, fontWeight: '700', color: '#ba1a1a' },
+
+    list: { paddingHorizontal: 16, paddingBottom: 16 },
+    listSectionHeader: { paddingTop: 20, paddingBottom: 12, justifyContent: 'space-between', alignItems: 'center' },
+    listSectionTitle: { fontSize: 20, fontWeight: '700', color: '#002045' },
+    listSectionCount: { fontSize: 13, color: '#74777f', fontWeight: '600' },
+
+    itemCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 12,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#e3e2e6',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 1,
+    },
+    itemThumbWrap: {
+        width: 56,
+        height: 56,
+        borderRadius: 14,
+        backgroundColor: '#efedf1',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    productThumb: { width: '100%', height: '100%', resizeMode: 'cover' },
+    itemInfo: { flex: 1, marginHorizontal: 12 },
+    itemName: { fontSize: 14, fontWeight: '700', color: '#1a1c1e', marginBottom: 2 },
+    itemBarcode: { fontSize: 10, color: '#74777f', fontWeight: '500', marginBottom: 4 },
+    itemPrice: { fontSize: 15, fontWeight: '800', color: '#002045' },
+
+    itemActions: { alignItems: 'flex-end', gap: 8 },
+    qtyControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f4f3f7', borderRadius: 10, padding: 3, gap: 2 },
+    qtyBtn: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#efedf1', alignItems: 'center', justifyContent: 'center' },
+    qtyBtnFill: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#002045', alignItems: 'center', justifyContent: 'center' },
+    qtyText: { fontSize: 14, fontWeight: '800', color: '#1a1c1e', minWidth: 22, textAlign: 'center' },
+    deleteBtn: { padding: 6 },
+
+    empty: { alignItems: 'center', marginTop: 80, gap: 12 },
+    emptyIconBox: { width: 88, height: 88, borderRadius: 28, backgroundColor: '#efedf1', alignItems: 'center', justifyContent: 'center' },
+    emptyText: { fontSize: 15, color: '#74777f', fontWeight: '600' },
+
+    bottomPanel: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 28,
+        borderWidth: 1,
+        borderColor: '#e3e2e6',
+        shadowColor: '#002045',
+        shadowOffset: { width: 0, height: -6 },
+        shadowOpacity: 0.08,
+        shadowRadius: 20,
+        elevation: 12,
+        gap: 16,
+    },
+
+    customerBanner: {
+        backgroundColor: '#fff4ee',
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ffdbcd',
+    },
+    customerBannerLeft: { alignItems: 'center', gap: 8, flex: 1 },
+    customerAvatarBox: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#ffdbcd', alignItems: 'center', justifyContent: 'center' },
+    customerBannerText: { fontSize: 13, fontWeight: '700', color: '#6a2500', flex: 1 },
+    changeBtn: { backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: '#ffdbcd' },
+    changeBtnText: { fontSize: 11, fontWeight: '700', color: '#a14009' },
+
+    paymentRow: { gap: 12 },
+    payBtn: {
+        flex: 1,
+        height: 52,
+        backgroundColor: '#f4f3f7',
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        borderWidth: 1,
+        borderColor: '#e3e2e6',
+    },
+    payBtnActiveCash: { backgroundColor: '#91f8b8', borderColor: '#91f8b8' },
+    payBtnActiveCarnet: { backgroundColor: '#a14009', borderColor: '#a14009' },
+    payBtnText: { fontSize: 13, fontWeight: '700', color: '#43474e' },
+    payBtnTextActiveCash: { color: '#002713' },
+    payBtnTextActiveCarnet: { color: '#fff' },
+
+    totalRow: { justifyContent: 'space-between', alignItems: 'center' },
+    totalLabel: { fontSize: 11, fontWeight: '700', color: '#43474e', letterSpacing: 1, marginBottom: 2 },
+    totalValue: { fontSize: 34, fontWeight: '800', color: '#002045', lineHeight: 38 },
+    totalCurrency: { fontSize: 16, color: '#002045', fontWeight: '600' },
+
+    checkoutBtn: {
+        height: 56,
+        backgroundColor: '#002045',
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        paddingHorizontal: 24,
+        shadowColor: '#002045',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    checkoutText: { color: '#fff', fontSize: 15, fontWeight: '700' },
     disabled: { opacity: 0.5 },
-    customerCartBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f0f2ff', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 12, marginBottom: 15 },
-    customerCartBannerInfo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    customerCartBannerText: { fontSize: 13, fontWeight: 'bold', color: '#4f46e5' },
-    changeCustomerBtn: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e7ff' },
-    changeCustomerText: { fontSize: 11, fontWeight: 'bold', color: '#4f46e5' }
 });
 
 export default SalesCartScreen;

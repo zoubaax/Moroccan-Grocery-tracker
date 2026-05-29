@@ -40,9 +40,8 @@ public class PantryService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found."));
 
-        Optional<PantryItem> existingItem = pantry.getItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
-                .findFirst();
+        // Use a direct DB query instead of the lazy-loaded collection to avoid creating duplicates
+        Optional<PantryItem> existingItem = pantryItemRepository.findByPantryAndProductId(pantry, productId);
 
         if (existingItem.isPresent()) {
             PantryItem item = existingItem.get();
@@ -50,8 +49,6 @@ public class PantryService {
             return pantryItemRepository.save(item);
         } else {
             PantryItem newItem = new PantryItem(pantry, product, quantity);
-            pantry.addItem(newItem);
-            pantryRepository.save(pantry);
             return pantryItemRepository.save(newItem);
         }
     }
