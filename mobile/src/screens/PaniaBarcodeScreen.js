@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity,
-    ActivityIndicator, Alert, Animated, Easing
+    ActivityIndicator, Alert, Animated, Easing, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, RefreshCw, Clock, Info, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, RefreshCw, Clock, Info, CheckCircle2, QrCode } from 'lucide-react-native';
 import { Barcode } from 'expo-barcode-generator';
 import axios from 'axios';
 import { useLanguage } from '../services/LanguageContext';
@@ -94,16 +94,16 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
     }, [expiresAt]);
 
     const isUrgent = progress <= 0.2;
-    const progressColor = progress > 0.5 ? '#10b981' : progress > 0.2 ? '#f59e0b' : '#ef4444';
+    const progressColor = progress > 0.5 ? '#10b981' : progress > 0.2 ? '#e06b3b' : '#ba1a1a';
+    const progressBgColor = isUrgent ? '#fff4f4' : progress > 0.5 ? '#f0fdf4' : '#fffbeb';
+    const progressBorderColor = isUrgent ? '#ffd6d6' : progress > 0.5 ? '#bbf7d0' : '#fef3c7';
 
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
-                <TouchableOpacity onPress={onBack} style={styles.headerBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <View style={styles.headerBtnInner}>
-                        <ArrowLeft color="#1e293b" size={20} style={isRTL ? { transform: [{ scaleX: -1 }] } : null} />
-                    </View>
+                <TouchableOpacity onPress={onBack} style={styles.headerIconBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <ArrowLeft color="#002045" size={24} style={isRTL ? { transform: [{ scaleX: -1 }] } : null} />
                 </TouchableOpacity>
                 <View style={{ alignItems: 'center' }}>
                     <Text style={styles.headerTitle}>
@@ -111,22 +111,18 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                     </Text>
                     <Text style={styles.headerSub}>Pania · 7anoti</Text>
                 </View>
-                <TouchableOpacity onPress={fetchBarcode} style={styles.headerBtn} disabled={isLoading} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <View style={styles.headerBtnInner}>
-                        {isLoading
-                            ? <ActivityIndicator size="small" color="#6366f1" />
-                            : <RefreshCw color="#6366f1" size={18} />
-                        }
-                    </View>
+                <TouchableOpacity onPress={fetchBarcode} style={styles.headerIconBtn} disabled={isLoading} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#002045" />
+                    ) : (
+                        <RefreshCw color="#002045" size={20} />
+                    )}
                 </TouchableOpacity>
             </View>
 
-            {/* Decorative top bar */}
-            <View style={styles.topAccent} />
-
             {isLoading && !barcodeToken ? (
                 <View style={styles.loaderContainer}>
-                    <ActivityIndicator size="large" color="#6366f1" />
+                    <ActivityIndicator size="large" color="#002045" />
                     <Text style={styles.loaderText}>
                         {language === 'fr' ? 'Génération en cours...' : 'جاري الإنشاء...'}
                     </Text>
@@ -138,7 +134,7 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                     style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
                 >
                     {/* Status badge */}
-                    <View style={[styles.statusBadge, { backgroundColor: isUrgent ? '#fef2f2' : '#f0fdf4', borderColor: isUrgent ? '#fecaca' : '#bbf7d0' }]}>
+                    <View style={[styles.statusBadge, { backgroundColor: progressBgColor, borderColor: progressBorderColor }]}>
                         <View style={[styles.statusDot, { backgroundColor: progressColor }]} />
                         <Text style={[styles.statusText, { color: progressColor }]}>
                             {isUrgent
@@ -153,12 +149,12 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                         <View style={styles.cardStripe} />
 
                         {/* Card dots */}
-                        <View style={styles.cardDotsRow}>
-                            <View style={styles.cardDot} />
-                            <View style={[styles.cardDot, { backgroundColor: '#fbbf24' }]} />
-                            <View style={[styles.cardDot, { backgroundColor: '#34d399' }]} />
+                        <View style={[styles.cardDotsRow, { flexDirection: flexDir }]}>
+                            <View style={[styles.cardDot, { backgroundColor: '#ba1a1a' }]} />
+                            <View style={[styles.cardDot, { backgroundColor: '#e06b3b' }]} />
+                            <View style={[styles.cardDot, { backgroundColor: '#10b981' }]} />
                             <View style={{ flex: 1 }} />
-                            <Text style={styles.cardBrand}>7anoti</Text>
+                            <Text style={styles.cardBrand}>7ANOTI</Text>
                         </View>
 
                         {/* Barcode */}
@@ -167,18 +163,18 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                                 value={barcodeToken}
                                 options={{
                                     format: 'CODE128',
-                                    lineColor: '#0f172a',
+                                    lineColor: '#002045',
                                     background: '#ffffff',
-                                    height: 90,
-                                    width: 1.2,
+                                    height: 100,
+                                    width: 1.3,
                                     displayValue: false,
-                                    margin: 12,
+                                    margin: 16,
                                 }}
                             />
                         </View>
 
                         {/* Token */}
-                        <View style={styles.tokenRow}>
+                        <View style={[styles.tokenRow, { flexDirection: flexDir }]}>
                             {barcodeToken.split('').map((char, i) => (
                                 <Text key={i} style={[styles.tokenChar, char === '-' && styles.tokenDash]}>
                                     {char}
@@ -194,14 +190,14 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                         </View>
 
                         {/* Timer */}
-                        <View style={styles.timerRow}>
-                            <View style={styles.timerLeft}>
-                                <Clock size={13} color="#64748b" />
+                        <View style={[styles.timerRow, { flexDirection: flexDir }]}>
+                            <View style={[styles.timerLeft, { flexDirection: flexDir }]}>
+                                <Clock size={15} color="#74777f" />
                                 <Text style={styles.timerLabel}>
                                     {language === 'fr' ? 'Expire dans' : 'ينتهي خلال'}
                                 </Text>
                             </View>
-                            <View style={[styles.timerPill, { borderColor: progressColor, backgroundColor: isUrgent ? '#fef2f2' : '#f8fafc' }]}>
+                            <View style={[styles.timerPill, { borderColor: progressColor, backgroundColor: progressBgColor }]}>
                                 <Text style={[styles.timerValue, { color: progressColor }]}>{timeLeft}</Text>
                             </View>
                         </View>
@@ -213,24 +209,24 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                     </Animated.View>
 
                     {/* How to use */}
-                    <View style={styles.infoCard}>
+                    <View style={[styles.infoCard, { flexDirection: flexDir }]}>
                         <View style={styles.infoIconBox}>
-                            <Info size={16} color="#6366f1" />
+                            <Info size={18} color="#002045" />
                         </View>
                         <Text style={[styles.infoText, { textAlign: tAlign }]}>
                             {language === 'fr'
-                                ? 'Présentez ce code-barres à votre épicier. Il le scannera pour voir vos articles et enregistrer la commande directement dans son carnet.'
+                                ? 'Présentez ce code-barres à votre épicier. Il le scannera pour voir vos articles et valider la commande directement.'
                                 : 'اعرض هذا الرمز الشريطي على بقّالك. سيمسحه لرؤية طلباتك وتسجيلها في دفتره.'}
                         </Text>
                     </View>
 
                     {/* Steps */}
                     <View style={styles.stepsCard}>
-                        <Text style={styles.stepsTitle}>
+                        <Text style={[styles.stepsTitle, { textAlign: tAlign }]}>
                             {language === 'fr' ? 'Comment ça marche ?' : 'كيف يعمل؟'}
                         </Text>
                         {[
-                            { n: 1, fr: 'Ouvrez cette page chez l\'épicier', ar: 'افتح هذه الصفحة عند البقال' },
+                            { n: 1, fr: 'Ouvrez cette page chez l\'épicier', ar: 'افتح cette الصفحة عند البقال' },
                             { n: 2, fr: 'Il scanne le code-barres', ar: 'يمسح الرمز الشريطي' },
                             { n: 3, fr: 'Il prépare et enregistre votre commande', ar: 'يُحضّر ويُسجّل طلبك' },
                         ].map((step) => (
@@ -247,7 +243,7 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
 
                     {/* Refresh */}
                     <TouchableOpacity style={[styles.refreshBtn, { flexDirection: flexDir }]} onPress={fetchBarcode} disabled={isLoading}>
-                        <RefreshCw color="#6366f1" size={15} />
+                        <RefreshCw color="#fff" size={16} />
                         <Text style={styles.refreshBtnText}>
                             {language === 'fr' ? 'Générer un nouveau code' : 'إنشاء رمز جديد'}
                         </Text>
@@ -257,7 +253,7 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
                 <View style={styles.errorContainer}>
                     <Text style={{ fontSize: 48 }}>⚠️</Text>
                     <Text style={styles.errorTitle}>
-                        {language === 'fr' ? 'Impossible de générer' : 'تعذّر الإنشاء'}
+                        {language === 'fr' ? 'Impossible de générer le code-barres' : 'تعذّر إنشاء الرمز الشريطي'}
                     </Text>
                     <TouchableOpacity style={styles.retryBtn} onPress={fetchBarcode}>
                         <Text style={styles.retryBtnText}>
@@ -271,73 +267,79 @@ const PaniaBarcodeScreen = ({ user, apiUrl, onBack }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
+    container: { flex: 1, backgroundColor: '#faf9fd' },
 
     // Header
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    headerBtnInner: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
-    headerTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
-    headerSub: { fontSize: 11, color: '#94a3b8', fontWeight: '500', marginTop: 1 },
+    header: {
+        height: 70,
+        paddingTop: 8,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e3e2e6',
+    },
+    headerIconBtn: { padding: 10, width: 44, alignItems: 'center' },
+    headerTitle: { fontSize: 18, fontWeight: '800', color: '#002045' },
+    headerSub: { fontSize: 11, color: '#74777f', fontWeight: '500', marginTop: 2 },
 
-    topAccent: { height: 3, backgroundColor: '#6366f1' },
-
-    loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14 },
-    loaderText: { color: '#64748b', fontSize: 14, fontWeight: '500' },
+    loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+    loaderText: { color: '#74777f', fontSize: 13, fontWeight: '500' },
 
     scrollContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40, alignItems: 'center' },
 
     // Status badge
-    statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, marginBottom: 18 },
-    statusDot: { width: 7, height: 7, borderRadius: 4 },
+    statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, marginBottom: 18 },
+    statusDot: { width: 8, height: 8, borderRadius: 4 },
     statusText: { fontSize: 12, fontWeight: '700' },
 
     // Barcode card
-    barcodeCard: { width: '100%', backgroundColor: '#fff', borderRadius: 24, overflow: 'hidden', shadowColor: '#6366f1', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.1, shadowRadius: 24, elevation: 8, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0' },
-    cardStripe: { height: 4, backgroundColor: '#6366f1' },
-    cardDotsRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
-    cardDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#ef4444' },
-    cardBrand: { fontSize: 11, fontWeight: '800', color: '#6366f1', letterSpacing: 1 },
+    barcodeCard: { width: '100%', backgroundColor: '#fff', borderRadius: 24, overflow: 'hidden', shadowColor: '#002045', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.08, shadowRadius: 24, elevation: 8, marginBottom: 20, borderWidth: 1, borderColor: '#e3e2e6' },
+    cardStripe: { height: 4, backgroundColor: '#002045' },
+    cardDotsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f4f3f7' },
+    cardDot: { width: 8, height: 8, borderRadius: 4 },
+    cardBrand: { fontSize: 11, fontWeight: '900', color: '#002045', letterSpacing: 2 },
 
-    barcodeWrapper: { paddingVertical: 8, paddingHorizontal: 0, alignItems: 'center', backgroundColor: '#fff', width: '100%' },
+    barcodeWrapper: { paddingVertical: 12, alignItems: 'center', backgroundColor: '#fff', width: '100%' },
 
-    tokenRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingBottom: 12, gap: 1 },
-    tokenChar: { fontSize: 20, fontWeight: '800', color: '#0f172a', letterSpacing: 3, fontVariant: ['tabular-nums'] },
-    tokenDash: { color: '#6366f1' },
+    tokenRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingBottom: 16, gap: 1 },
+    tokenChar: { fontSize: 20, fontWeight: '800', color: '#002045', letterSpacing: 4, fontVariant: ['tabular-nums'] },
+    tokenDash: { color: '#a14009' },
 
     tearLine: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0 },
-    tearCircleLeft: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#f8fafc', marginLeft: -12 },
-    tearDash: { flex: 1, height: 1, borderWidth: 1, borderStyle: 'dashed', borderColor: '#e2e8f0' },
-    tearCircleRight: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#f8fafc', marginRight: -12 },
+    tearCircleLeft: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#faf9fd', marginLeft: -12, borderWidth: 1, borderColor: '#e3e2e6' },
+    tearDash: { flex: 1, height: 1, borderWidth: 1, borderStyle: 'dashed', borderColor: '#e3e2e6' },
+    tearCircleRight: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#faf9fd', marginRight: -12, borderWidth: 1, borderColor: '#e3e2e6' },
 
-    timerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 14, paddingBottom: 8 },
-    timerLeft: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    timerLabel: { fontSize: 12, color: '#64748b', fontWeight: '600' },
-    timerPill: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 10, borderWidth: 1.5 },
+    timerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10 },
+    timerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    timerLabel: { fontSize: 13, color: '#74777f', fontWeight: '600' },
+    timerPill: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 10, borderWidth: 1.5 },
     timerValue: { fontSize: 14, fontWeight: '800', fontVariant: ['tabular-nums'] },
 
-    progressBg: { height: 4, backgroundColor: '#f1f5f9', marginHorizontal: 18, marginBottom: 18, borderRadius: 2, overflow: 'hidden' },
+    progressBg: { height: 4, backgroundColor: '#efedf1', marginHorizontal: 18, marginBottom: 18, borderRadius: 2, overflow: 'hidden' },
     progressFill: { height: '100%', borderRadius: 2 },
 
     // Info card
-    infoCard: { width: '100%', flexDirection: 'row', backgroundColor: '#eef2ff', borderRadius: 16, padding: 14, gap: 10, alignItems: 'flex-start', marginBottom: 12, borderWidth: 1, borderColor: '#c7d2fe' },
-    infoIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#e0e7ff', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    infoText: { flex: 1, fontSize: 13, color: '#4338ca', lineHeight: 19, fontWeight: '500' },
+    infoCard: { width: '100%', flexDirection: 'row', backgroundColor: '#efedf1', borderRadius: 16, padding: 16, gap: 12, alignItems: 'flex-start', marginBottom: 16, borderWidth: 1, borderColor: '#e3e2e6' },
+    infoIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', flexShrink: 0, borderWidth: 1, borderColor: '#e3e2e6' },
+    infoText: { flex: 1, fontSize: 13, color: '#43474e', lineHeight: 19, fontWeight: '500' },
 
     // Steps
-    stepsCard: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#e2e8f0', gap: 10, shadowColor: '#94a3b8', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1 },
-    stepsTitle: { fontSize: 12, fontWeight: '800', color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 4 },
+    stepsCard: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#e3e2e6', gap: 12, shadowColor: '#002045', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 1 },
+    stepsTitle: { fontSize: 12, fontWeight: '800', color: '#74777f', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 4 },
     stepRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    stepBullet: { width: 26, height: 26, borderRadius: 8, backgroundColor: '#6366f1', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    stepBullet: { width: 26, height: 26, borderRadius: 8, backgroundColor: '#002045', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     stepBulletText: { color: '#fff', fontSize: 12, fontWeight: '800' },
-    stepText: { flex: 1, fontSize: 13, color: '#475569', fontWeight: '500', lineHeight: 18 },
+    stepText: { flex: 1, fontSize: 13, color: '#43474e', fontWeight: '500', lineHeight: 18 },
 
-    refreshBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: '#c7d2fe', width: '100%', backgroundColor: '#eef2ff' },
-    refreshBtnText: { color: '#6366f1', fontSize: 13, fontWeight: '700' },
+    refreshBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 16, width: '100%', backgroundColor: '#a14009', shadowColor: '#a14009', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3 },
+    refreshBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
     errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 24 },
-    errorTitle: { fontSize: 16, fontWeight: '700', color: '#64748b', textAlign: 'center' },
-    retryBtn: { backgroundColor: '#6366f1', paddingHorizontal: 28, paddingVertical: 13, borderRadius: 14, marginTop: 4 },
+    errorTitle: { fontSize: 16, fontWeight: '700', color: '#74777f', textAlign: 'center' },
+    retryBtn: { backgroundColor: '#a14009', paddingHorizontal: 28, paddingVertical: 13, borderRadius: 14, marginTop: 4 },
     retryBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });
 
