@@ -19,8 +19,8 @@ const UpgradeModal = ({ visible, onClose, targetPlan, currentPlan }) => {
             <View style={styles.overlay}>
                 <View style={styles.sheet}>
                     <View style={[styles.header, { flexDirection: flexDir }]}>
-                        <View style={[styles.headerIcon, { backgroundColor: '#eef2ff' }]}>
-                            <Lock color="#6366f1" size={20} />
+                        <View style={[styles.headerIcon, { backgroundColor: '#fff4ee' }]}>
+                            <Lock color="#a14009" size={20} />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.title, { textAlign: tAlign }]}>
@@ -79,19 +79,19 @@ const UpgradeModal = ({ visible, onClose, targetPlan, currentPlan }) => {
 };
 
 const styles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', justifyContent: 'center', padding: 20 },
+    overlay: { flex: 1, backgroundColor: 'rgba(0, 32, 69, 0.55)', justifyContent: 'center', padding: 20 },
     sheet: { backgroundColor: '#fff', borderRadius: 24, padding: 20, maxHeight: '88%' },
     header: { alignItems: 'flex-start', gap: 12, marginBottom: 16 },
     headerIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    title: { fontSize: 17, fontWeight: '800', color: '#0f172a' },
-    sub: { fontSize: 13, color: '#64748b', marginTop: 4, lineHeight: 18 },
-    planCard: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 16, padding: 14, marginBottom: 10, backgroundColor: '#f8fafc' },
-    planCardTarget: { borderColor: '#6366f1', backgroundColor: '#fafbff' },
+    title: { fontSize: 17, fontWeight: '800', color: '#002045' },
+    sub: { fontSize: 13, color: '#74777f', marginTop: 4, lineHeight: 18 },
+    planCard: { borderWidth: 1, borderColor: '#e3e2e6', borderRadius: 16, padding: 14, marginBottom: 10, backgroundColor: '#faf9fd' },
+    planCardTarget: { borderColor: '#a14009', backgroundColor: '#fff4ee' },
     planCardCurrent: { borderColor: '#10b981' },
-    planName: { fontSize: 14, fontWeight: '800', color: '#0f172a', marginBottom: 8 },
+    planName: { fontSize: 14, fontWeight: '800', color: '#002045', marginBottom: 8 },
     featureRow: { alignItems: 'center', gap: 8, marginBottom: 4 },
-    featureText: { fontSize: 12, color: '#475569', fontWeight: '500' },
-    contactBtn: { marginTop: 12, backgroundColor: '#6366f1', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+    featureText: { fontSize: 12, color: '#74777f', fontWeight: '500' },
+    contactBtn: { marginTop: 12, backgroundColor: '#a14009', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
     contactBtnText: { color: '#fff', fontSize: 14, fontWeight: '800' },
 });
 

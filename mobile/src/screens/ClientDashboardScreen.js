@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     welcomeSection: { marginBottom: 24 },
     welcomeGreeting: { fontSize: 16, color: '#43474e', marginBottom: 4 },
     welcomeName: { fontSize: 28, fontWeight: '700', color: '#002045' },
-    heroCard: { backgroundColor: '#1a365d', borderRadius: 24, padding: 24, marginBottom: 24, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 5 },
+    heroCard: { backgroundColor: '#002045', borderRadius: 24, padding: 24, marginBottom: 24, overflow: 'hidden', shadowColor: '#002045', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 5 },
     heroLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.7)', letterSpacing: 1.5, marginBottom: 8 },
     heroAmountRow: { alignItems: 'baseline', marginBottom: 16, gap: 8 },
     heroAmount: { fontSize: 40, fontWeight: '800', color: '#ffffff' },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     txnImg: { width: '100%', height: '100%', resizeMode: 'cover' },
     txnImgPlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
     txnInfo: { flex: 1, marginHorizontal: 12 },
-    txnTitle: { fontSize: 16, fontWeight: '600', color: '#1a1c1e', marginBottom: 4 },
+    txnTitle: { fontSize: 16, fontWeight: '600', color: '#002045', marginBottom: 4 },
     txnDate: { fontSize: 12, color: '#74777f' },
     txnAmounts: { alignItems: 'flex-end' },
     txnPrice: { fontSize: 16, fontWeight: '700', color: '#002045', marginBottom: 4 },
@@ -318,11 +318,11 @@ const styles = StyleSheet.create({
     actionGrid: { gap: 12, marginBottom: 16 },
     actionGridCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e3e2e6', padding: 16, alignItems: 'center' },
     actionIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-    actionCardTitle: { fontSize: 13, fontWeight: 'bold', color: '#1a1c1e', textAlign: 'center' },
+    actionCardTitle: { fontSize: 13, fontWeight: 'bold', color: '#002045', textAlign: 'center' },
     barcodeShortcutCard: { backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e3e2e6', padding: 16, alignItems: 'center' },
     barcodeIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
     barcodeTextColumn: { flex: 1 },
-    barcodeShortcutTitle: { fontSize: 14, fontWeight: 'bold', color: '#1a1c1e' }
+    barcodeShortcutTitle: { fontSize: 14, fontWeight: 'bold', color: '#002045' }
 });
 
 export default ClientDashboardScreen;

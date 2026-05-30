@@ -1,76 +1,98 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, ScrollView } from 'react-native';
-import { ShoppingBag, Power, Users, ArrowRight, TrendingUp, DollarSign, BarChart2, Store, Bot, Lock } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, Platform, ScrollView, Animated, ActivityIndicator } from 'react-native';
+import { ShoppingBag, Power, Users, ArrowRight, TrendingUp, DollarSign, BarChart2, Store, Bot, Lock, RefreshCw } from 'lucide-react-native';
 import { useLanguage } from '../services/LanguageContext';
 import UpgradeModal from '../components/UpgradeModal';
 
-const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscriptionPlan }) => {
-    const { t, isRTL, flexDir, tAlign } = useLanguage();
+const AnimatedTouchable = ({ onPress, style, children }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const handlePressIn = () => Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true }).start();
+    const handlePressOut = () => Animated.spring(scaleAnim, { toValue: 1, friction: 3, tension: 40, useNativeDriver: true }).start();
+    return (
+        <TouchableWithoutFeedback onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress}>
+            <Animated.View style={[style, { transform: [{ scale: scaleAnim }] }]}>
+                {children}
+            </Animated.View>
+        </TouchableWithoutFeedback>
+    );
+};
+
+const PortalScreen = ({ onSelectMode, onLogout, onRefreshPlan, userName, features, subscriptionPlan }) => {
+    const { t, isRTL, flexDir, tAlign, language } = useLanguage();
     const [upgradeTarget, setUpgradeTarget] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const f = features || { sales: true, credit: true, marketplace: false, aiAutomation: false };
     const plan = subscriptionPlan || 'START';
 
-    // Visibility rules:
-    // • Marketplace card : START → shown locked | PRO → hidden (accessed via scanner) | ULTIMATE → hidden
-    // • AI Automation    : START → shown locked | PRO  → shown locked                  | ULTIMATE → hidden (accessed inside CustomerDetailScreen)
     const showMarketplaceCard = plan === 'START';
     const showAiCard = plan !== 'ULTIMATE';
 
     const openOrUpgrade = (enabled, targetPlan, mode) => {
-        if (enabled) {
-            onSelectMode(mode);
-        } else {
-            setUpgradeTarget(targetPlan);
-        }
+        if (enabled) { onSelectMode(mode); } else { setUpgradeTarget(targetPlan); }
     };
 
-    const renderActionCard = ({
-        enabled,
-        targetPlan,
-        mode,
-        cardStyle,
-        arrowColor,
-        Icon,
-        titleKey,
-        descKey,
-        lockLabelKey,
-    }) => (
-        <TouchableOpacity
-            style={[styles.actionCard, cardStyle, { flexDirection: flexDir }, !enabled && styles.actionCardLocked]}
+    const handleRefresh = async () => {
+        if (!onRefreshPlan || isRefreshing) return;
+        setIsRefreshing(true);
+        await onRefreshPlan();
+        setIsRefreshing(false);
+    };
+
+    const dummyProgress = 0.75;
+
+    const renderGridCard = ({ enabled, targetPlan, mode, iconBg, iconColor, Icon, titleKey, descKey, lockLabelKey, fullWidth = false }) => (
+        <AnimatedTouchable
+            style={[styles.gridCard, fullWidth && styles.gridCardFull, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}
             onPress={() => openOrUpgrade(enabled, targetPlan, mode)}
-            activeOpacity={0.9}
         >
-            <View style={[styles.cardContent, { flexDirection: flexDir }]}>
-                <View style={[styles.actionIconBox, !enabled && styles.actionIconBoxLocked]}>
-                    {enabled ? <Icon color="#fff" size={28} /> : <Lock color="rgba(255,255,255,0.9)" size={22} />}
-                </View>
-                <View style={[styles.cardTextDetails, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                    <Text style={[styles.actionCardTitle, { textAlign: tAlign }]}>{t(titleKey)}</Text>
-                    <Text style={[styles.actionCardDesc, { textAlign: tAlign }]}>
-                        {enabled ? t(descKey) : t(lockLabelKey)}
-                    </Text>
-                </View>
+            <View style={[styles.gridIconBox, { backgroundColor: enabled ? iconBg : '#f4f3f7' }]}>
+                {enabled ? <Icon color={iconColor} size={26} /> : <Lock color="#94a3b8" size={22} />}
             </View>
-            <View style={[styles.arrowCircle, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
-                {enabled ? <ArrowRight color={arrowColor} size={20} /> : <Lock color="#94a3b8" size={16} />}
+            <Text style={[styles.gridCardTitle, { textAlign: tAlign }]}>{t(titleKey)}</Text>
+            <Text style={[styles.gridCardDesc, { textAlign: tAlign }]} numberOfLines={2}>
+                {enabled ? t(descKey) : t(lockLabelKey)}
+            </Text>
+            <View style={[styles.gridCardFooter, { flexDirection: flexDir }]}>
+                <Text style={[styles.gridCardActionText, { color: enabled ? iconColor : '#94a3b8' }]}>
+                    {enabled ? (language === 'fr' ? 'Ouvrir' : 'فتح') : (language === 'fr' ? 'Upgrade' : 'ترقية')}
+                </Text>
+                <ArrowRight color={enabled ? iconColor : '#94a3b8'} size={13} style={isRTL ? { transform: [{ rotate: '180deg' }] } : null} />
             </View>
-        </TouchableOpacity>
+        </AnimatedTouchable>
     );
 
     return (
         <>
-            <ScrollView style={styles.container} bounces={false}>
+            <ScrollView style={styles.container} bounces={false} showsVerticalScrollIndicator={false}>
+                {/* Header */}
                 <View style={styles.headerBanner}>
                     <SafeAreaView>
                         <View style={[styles.headerTop, { flexDirection: flexDir }]}>
-                            <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                            <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start', flex: 1 }}>
                                 <Text style={[styles.greeting, { textAlign: tAlign }]}>{t('portal.greeting', { name: userName })}</Text>
                                 <Text style={[styles.headerSubtitle, { textAlign: tAlign }]}>{t('portal.subtitle')}</Text>
-                                <View style={[styles.planBadge, { alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
-                                    <Text style={styles.planBadgeText}>
-                                        {t('subscription.planLabel', { plan: t(`subscription.plan.${plan.toLowerCase()}`) })}
-                                    </Text>
+                                <View style={[styles.planBadgeRow, { flexDirection: flexDir }]}>
+                                    <View style={[styles.planBadge]}>
+                                        <Text style={styles.planBadgeText}>
+                                            {t('subscription.planLabel', { plan: t(`subscription.plan.${plan.toLowerCase()}`) })}
+                                        </Text>
+                                    </View>
+                                    {/* Plan Refresh Button */}
+                                    <TouchableOpacity
+                                        onPress={handleRefresh}
+                                        style={styles.refreshPlanBtn}
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                        disabled={isRefreshing}
+                                    >
+                                        {isRefreshing
+                                            ? <ActivityIndicator size={12} color="rgba(255,255,255,0.8)" />
+                                            : <RefreshCw color="rgba(255,255,255,0.8)" size={12} />
+                                        }
+                                        <Text style={styles.refreshPlanText}>
+                                            {language === 'fr' ? 'Actualiser plan' : 'تحديث الخطة'}
+                                        </Text>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                             <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
@@ -80,13 +102,25 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                     </SafeAreaView>
                 </View>
 
+                {/* Dashboard Card */}
                 <View style={styles.dashboardWrapper}>
                     <View style={styles.dashboardCard}>
-                        <Text style={[styles.dashboardTitle, { textAlign: tAlign }]}>{t('portal.dailySummary')}</Text>
+                        <View style={[styles.dashboardHeaderRow, { flexDirection: flexDir }]}>
+                            <Text style={[styles.dashboardTitle, { textAlign: tAlign }]}>{t('portal.dailySummary')}</Text>
+                            <Text style={styles.goalText}>
+                                {language === 'fr' ? 'Objectif: 2000 DH' : 'الهدف: 2000 درهم'}
+                            </Text>
+                        </View>
+                        <View style={styles.progressContainer}>
+                            <View style={styles.progressTrack}>
+                                <View style={[styles.progressFill, { width: `${dummyProgress * 100}%` }]} />
+                            </View>
+                            <Text style={styles.progressPercent}>{Math.round(dummyProgress * 100)}%</Text>
+                        </View>
                         <View style={[styles.metricsRow, { flexDirection: flexDir }]}>
                             <View style={[styles.metricItem, { flexDirection: flexDir }]}>
                                 <View style={[styles.metricIconBox, { backgroundColor: '#eef2ff' }]}>
-                                    <TrendingUp color="#4f46e5" size={18} />
+                                    <TrendingUp color="#002045" size={18} />
                                 </View>
                                 <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
                                     <Text style={[styles.metricValue, { textAlign: tAlign }]}>1,450.00 DH</Text>
@@ -107,73 +141,47 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
                     </View>
                 </View>
 
+                {/* All Cards Grid */}
                 <View style={styles.content}>
                     <Text style={[styles.sectionTitle, { textAlign: tAlign }]}>{t('portal.commercialManagement')}</Text>
 
-                    {/* Vente normale — always visible, always unlocked */}
-                    {renderActionCard({
-                        enabled: true,
-                        targetPlan: 'START',
-                        mode: 'NORMAL',
-                        cardStyle: styles.sellCard,
-                        arrowColor: '#4f46e5',
-                        Icon: ShoppingBag,
-                        titleKey: 'portal.caisseTitle',
-                        descKey: 'portal.caisseDesc',
-                        lockLabelKey: 'subscription.lockSales',
-                    })}
+                    <View style={[styles.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                        {/* Caisse */}
+                        {renderGridCard({
+                            enabled: true, targetPlan: 'START', mode: 'NORMAL',
+                            iconBg: '#fff4ee', iconColor: '#a14009', Icon: ShoppingBag,
+                            titleKey: 'portal.caisseTitle', descKey: 'portal.caisseDesc', lockLabelKey: 'subscription.lockSales',
+                        })}
 
-                    {/* Carnet de crédits — always visible, always unlocked */}
-                    {renderActionCard({
-                        enabled: true,
-                        targetPlan: 'START',
-                        mode: 'CREDIT',
-                        cardStyle: styles.creditCard,
-                        arrowColor: '#0ea5e9',
-                        Icon: Users,
-                        titleKey: 'portal.creditTitle',
-                        descKey: 'portal.creditDesc',
-                        lockLabelKey: 'subscription.lockCredit',
-                    })}
+                        {/* Crédits */}
+                        {renderGridCard({
+                            enabled: true, targetPlan: 'START', mode: 'CREDIT',
+                            iconBg: '#eef2ff', iconColor: '#002045', Icon: Users,
+                            titleKey: 'portal.creditTitle', descKey: 'portal.creditDesc', lockLabelKey: 'subscription.lockCredit',
+                        })}
 
-                    {/* Marketplace — shown for START (locked) and PRO (unlocked). Hidden for ULTIMATE (accessible via scanner). */}
-                    {showMarketplaceCard && renderActionCard({
-                        enabled: f.marketplace,
-                        targetPlan: 'PRO',
-                        mode: 'MARKETPLACE',
-                        cardStyle: styles.marketplaceCard,
-                        arrowColor: '#8b5cf6',
-                        Icon: Store,
-                        titleKey: 'portal.marketplaceTitle',
-                        descKey: 'portal.marketplaceDesc',
-                        lockLabelKey: 'subscription.lockMarketplace',
-                    })}
+                        {/* Statistiques */}
+                        {renderGridCard({
+                            enabled: true, targetPlan: 'START', mode: 'STATS',
+                            iconBg: '#f0fdf4', iconColor: '#10b981', Icon: BarChart2,
+                            titleKey: 'portal.statsTitle', descKey: 'portal.statsDesc', lockLabelKey: 'subscription.lockSales',
+                        })}
 
-                    {/* AI Automation — locked for START & PRO; hidden for ULTIMATE (accessible inside CustomerDetailScreen) */}
-                    {showAiCard && renderActionCard({
-                        enabled: false,
-                        targetPlan: 'ULTIMATE',
-                        mode: 'AI',
-                        cardStyle: styles.aiCard,
-                        arrowColor: '#f59e0b',
-                        Icon: Bot,
-                        titleKey: 'portal.aiTitle',
-                        descKey: 'portal.aiDesc',
-                        lockLabelKey: 'subscription.lockAi',
-                    })}
+                        {/* Marketplace */}
+                        {showMarketplaceCard && renderGridCard({
+                            enabled: f.marketplace, targetPlan: 'PRO', mode: 'MARKETPLACE',
+                            iconBg: '#fdf4ff', iconColor: '#c026d3', Icon: Store,
+                            titleKey: 'portal.marketplaceTitle', descKey: 'portal.marketplaceDesc', lockLabelKey: 'subscription.lockMarketplace',
+                        })}
 
-                    {/* Statistiques — always visible, always unlocked */}
-                    {renderActionCard({
-                        enabled: true,
-                        targetPlan: 'START',
-                        mode: 'STATS',
-                        cardStyle: styles.statsCardAction,
-                        arrowColor: '#10b981',
-                        Icon: BarChart2,
-                        titleKey: 'portal.statsTitle',
-                        descKey: 'portal.statsDesc',
-                        lockLabelKey: 'subscription.lockSales',
-                    })}
+                        {/* AI Automation — full width if it's alone on a row */}
+                        {showAiCard && renderGridCard({
+                            enabled: false, targetPlan: 'ULTIMATE', mode: 'AI',
+                            iconBg: '#fffbeb', iconColor: '#f59e0b', Icon: Bot,
+                            titleKey: 'portal.aiTitle', descKey: 'portal.aiDesc', lockLabelKey: 'subscription.lockAi',
+                            fullWidth: !showMarketplaceCard, // full width only when Marketplace is hidden
+                        })}
+                    </View>
                 </View>
 
                 <View style={[styles.footer, { flexDirection: flexDir }]}>
@@ -205,57 +213,54 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: Platform.OS === 'ios' ? 20 : 40,
     },
-    headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+    headerTop: { justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 10 },
     greeting: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-    headerSubtitle: { fontSize: 13, color: '#a5b4fc', marginTop: 2, fontWeight: '500' },
-    planBadge: { marginTop: 8, backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    headerSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2, fontWeight: '500' },
+    planBadgeRow: { marginTop: 10, alignItems: 'center', gap: 10 },
+    planBadge: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
     planBadgeText: { color: '#e0e7ff', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+    refreshPlanBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+    refreshPlanText: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
     logoutBtn: {
         width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.1)',
         alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)',
     },
-    dashboardWrapper: { paddingHorizontal: 20, marginTop: -30, marginBottom: 25 },
+    dashboardWrapper: { paddingHorizontal: 20, marginTop: -30, marginBottom: 15 },
     dashboardCard: {
         backgroundColor: '#fff', borderRadius: 24, padding: 20,
-        shadowColor: '#002045', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 20,
+        shadowColor: '#002045', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.06, shadowRadius: 20,
         elevation: 8, borderWidth: 1, borderColor: '#e3e2e6',
     },
-    dashboardTitle: { fontSize: 10, fontWeight: '900', color: '#94a3b8', letterSpacing: 1.5, marginBottom: 15 },
-    metricsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    metricItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    dashboardHeaderRow: { justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    dashboardTitle: { fontSize: 10, fontWeight: '900', color: '#74777f', letterSpacing: 1.5 },
+    goalText: { fontSize: 10, fontWeight: 'bold', color: '#a14009' },
+    progressContainer: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
+    progressTrack: { flex: 1, height: 6, backgroundColor: '#efedf1', borderRadius: 3, overflow: 'hidden' },
+    progressFill: { height: '100%', backgroundColor: '#a14009', borderRadius: 3 },
+    progressPercent: { fontSize: 11, fontWeight: '800', color: '#a14009' },
+    metricsRow: { alignItems: 'center', justifyContent: 'space-between' },
+    metricItem: { flex: 1, alignItems: 'center', gap: 12 },
     metricIconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
     metricValue: { fontSize: 16, fontWeight: 'bold', color: '#002045' },
-    metricLabel: { fontSize: 11, color: '#64748b', fontWeight: '500', marginTop: 1 },
+    metricLabel: { fontSize: 11, color: '#74777f', fontWeight: '500', marginTop: 1 },
     divider: { width: 1, height: 35, backgroundColor: '#e3e2e6', marginHorizontal: 15 },
-    content: { paddingHorizontal: 20, gap: 20, paddingBottom: 20 },
-    sectionTitle: { fontSize: 11, fontWeight: '800', color: '#64748b', letterSpacing: 1.5, marginBottom: 5, paddingLeft: 4 },
-    actionCard: {
-        borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', position: 'relative', overflow: 'hidden',
+    content: { paddingHorizontal: 20, paddingBottom: 30 },
+    sectionTitle: { fontSize: 11, fontWeight: '800', color: '#74777f', letterSpacing: 1.5, marginBottom: 15, paddingLeft: 4 },
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 15 },
+    gridCard: {
+        width: '47.5%', backgroundColor: '#fff', borderRadius: 24, padding: 20,
+        borderWidth: 1, borderColor: '#e3e2e6',
+        shadowColor: '#002045', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 4
     },
-    actionCardLocked: { opacity: 0.88 },
-    sellCard: { backgroundColor: '#4f46e5', shadowColor: '#4f46e5', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 25, elevation: 10 },
-    creditCard: { backgroundColor: '#0ea5e9', shadowColor: '#0ea5e9', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 25, elevation: 10 },
-    marketplaceCard: { backgroundColor: '#7c3aed', shadowColor: '#7c3aed', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 25, elevation: 10 },
-    aiCard: { backgroundColor: '#d97706', shadowColor: '#d97706', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 25, elevation: 10 },
-    statsCardAction: { backgroundColor: '#10b981', shadowColor: '#10b981', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 25, elevation: 10 },
-    cardContent: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 16 },
-    actionIconBox: {
-        width: 54, height: 54, borderRadius: 18, backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.25)',
-    },
-    actionIconBoxLocked: { backgroundColor: 'rgba(0,0,0,0.15)' },
-    cardTextDetails: { flex: 1, paddingRight: 10 },
-    actionCardTitle: { fontSize: 18, fontWeight: '900', color: '#fff', letterSpacing: 0.5 },
-    actionCardDesc: { fontSize: 12, color: 'rgba(255, 255, 255, 0.8)', marginTop: 4, lineHeight: 18 },
-    arrowCircle: {
-        width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff',
-        alignItems: 'center', justifyContent: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3,
-    },
-    footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingVertical: 20 },
-    appVersion: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold' },
-    statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f0fdf4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+    gridCardFull: { width: '100%' },
+    gridIconBox: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+    gridCardTitle: { fontSize: 15, fontWeight: '900', color: '#002045', marginBottom: 5 },
+    gridCardDesc: { fontSize: 11, color: '#74777f', lineHeight: 16 },
+    gridCardFooter: { marginTop: 14, alignItems: 'center', gap: 4 },
+    gridCardActionText: { fontSize: 11, fontWeight: 'bold' },
+    footer: { justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingVertical: 20 },
+    appVersion: { fontSize: 11, color: '#74777f', fontWeight: 'bold' },
+    statusBadge: { alignItems: 'center', gap: 6, backgroundColor: '#f0fdf4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
     statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22c55e' },
     statusText: { fontSize: 10, color: '#166534', fontWeight: 'bold' },
 });

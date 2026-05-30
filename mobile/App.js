@@ -72,6 +72,24 @@ function AppContent() {
     setSelectedCustomer(null);
   };
 
+  const handleRefreshPlan = async () => {
+    if (!user?.token) return;
+    try {
+      const response = await axios.get(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (response.data) {
+        setUser(prev => ({
+          ...prev,
+          features: response.data.features,
+          subscriptionPlan: response.data.subscriptionPlan,
+        }));
+      }
+    } catch (err) {
+      console.warn('Plan refresh failed:', err);
+    }
+  };
+
   const handleSelectPortalMode = (mode) => {
       const features = user?.features || { sales: true, credit: true, marketplace: false, aiAutomation: false };
 
@@ -178,6 +196,7 @@ function AppContent() {
             userName={user?.username || user?.name || 'Moul 7anout'}
             onSelectMode={handleSelectPortalMode}
             onLogout={handleLogout}
+            onRefreshPlan={handleRefreshPlan}
             features={user?.features}
             subscriptionPlan={user?.subscriptionPlan}
           />
@@ -362,7 +381,7 @@ const styles = StyleSheet.create({
   backButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   appTitle: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', letterSpacing: 1 },
   scannerOverlay: { position: 'absolute', bottom: 40, right: 20, left: 20, gap: 10 },
-  floatingCart: { backgroundColor: '#4f46e5', height: 65, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, shadowColor: '#4f46e5', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 10 },
+  floatingCart: { backgroundColor: '#a14009', height: 65, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, shadowColor: '#a14009', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 10 },
   floatingCartText: { color: '#fff', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
   badge: { position: 'absolute', top: -10, left: '50%', marginLeft: -35, backgroundColor: '#ef4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
