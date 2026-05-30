@@ -120,7 +120,7 @@ const ScannerScreen = ({ navigation, onScan, continuous = false, lastAdded = nul
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f172a' },
+    container: { flex: 1, backgroundColor: '#002045' },
     header: { height: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
     headerTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
     iconButton: { padding: 10 },
@@ -131,19 +131,19 @@ const styles = StyleSheet.create({
     focusedContainer: { width: 280, height: 280, borderRadius: 24, position: 'relative' },
     instruction: { color: '#fff', fontSize: 13, fontWeight: 'bold', letterSpacing: 1, opacity: 0.8 },
     toast: { position: 'absolute', top: 30, left: 20, right: 20, backgroundColor: '#fff', padding: 15, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 15, elevation: 5 },
-    toastText: { color: '#1e293b', fontWeight: 'bold', fontSize: 15 },
-    corner: { position: 'absolute', width: 40, height: 40, borderColor: '#4f46e5', borderWidth: 5 },
+    toastText: { color: '#002045', fontWeight: 'bold', fontSize: 15 },
+    corner: { position: 'absolute', width: 40, height: 40, borderColor: '#a14009', borderWidth: 5 },
     topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 20 },
     topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 20 },
     bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 20 },
     bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 20 },
-    rescanButton: { position: 'absolute', bottom: 50, alignSelf: 'center', backgroundColor: '#4f46e5', paddingVertical: 18, paddingHorizontal: 30, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 10 },
+    rescanButton: { position: 'absolute', bottom: 50, alignSelf: 'center', backgroundColor: '#a14009', paddingVertical: 18, paddingHorizontal: 30, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 10 },
     rescanText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-    scannedOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(79, 70, 229, 0.6)', borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+    scannedOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(161, 64, 9, 0.6)', borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
     scannedText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
     permissionText: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-    permissionSub: { color: '#94a3b8', fontSize: 14, textAlign: 'center', marginBottom: 30, paddingHorizontal: 20 },
-    button: { backgroundColor: '#4f46e5', paddingVertical: 15, paddingHorizontal: 30, borderRadius: 15 },
+    permissionSub: { color: '#74777f', fontSize: 14, textAlign: 'center', marginBottom: 30, paddingHorizontal: 20 },
+    button: { backgroundColor: '#a14009', paddingVertical: 15, paddingHorizontal: 30, borderRadius: 15 },
     buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 }
 });
 

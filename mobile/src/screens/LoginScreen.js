@@ -144,7 +144,7 @@ const LoginScreen = ({ onLogin }) => {
                     {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.logoCircle}>
-                            <Store color="#4f46e5" size={36} />
+                            <Store color="#a14009" size={36} />
                         </View>
                         <Text style={styles.logo}>7anoti</Text>
                         <Text style={styles.tagline}>{t('login.tagline')}</Text>
@@ -221,9 +221,9 @@ const LoginScreen = ({ onLogin }) => {
                                     activeOpacity={0.8}
                                 >
                                     {biometricType === 'FACIAL_RECOGNITION' ? (
-                                        <ScanFace color="#4f46e5" size={26} />
+                                        <ScanFace color="#a14009" size={26} />
                                     ) : (
-                                        <Fingerprint color="#4f46e5" size={26} />
+                                        <Fingerprint color="#a14009" size={26} />
                                     )}
                                 </TouchableOpacity>
                             )}
@@ -242,7 +242,7 @@ const LoginScreen = ({ onLogin }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, // Soft slate-50 background (light mode)
+    container: { flex: 1, backgroundColor: '#faf9fd' }, // Soft slate-50 background (light mode)
     keyboardView: { flex: 1 },
     content: { flex: 1, padding: 30, justifyContent: 'center' },
     header: { alignItems: 'center', marginBottom: 40 },
@@ -255,15 +255,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 15,
         borderWidth: 1,
-        borderColor: '#e2e8f0', // soft border
-        shadowColor: '#4f46e5',
+        borderColor: '#e3e2e6', // soft border
+        shadowColor: '#a14009',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
         elevation: 4,
     },
-    logo: { fontSize: 36, fontWeight: 'bold', color: '#1e293b', letterSpacing: -1 }, // Dark slate text
-    tagline: { fontSize: 10, fontWeight: '900', color: '#4f46e5', letterSpacing: 2.5, marginTop: 8 },
+    logo: { fontSize: 36, fontWeight: 'bold', color: '#002045', letterSpacing: -1 }, // Dark slate text
+    tagline: { fontSize: 10, fontWeight: '900', color: '#a14009', letterSpacing: 2.5, marginTop: 8 },
     form: { width: '100%' },
     label: { fontSize: 10, fontWeight: '900', color: '#64748b', marginBottom: 8, letterSpacing: 1 }, // slate label
     inputContainer: {
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fff', // white input box
         borderWidth: 1,
-        borderColor: '#e2e8f0', // soft slate border
+        borderColor: '#e3e2e6', // soft slate border
         borderRadius: 16,
         paddingHorizontal: 15,
         marginBottom: 22,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
         elevation: 1,
     },
     inputIcon: { marginRight: 10 },
-    input: { flex: 1, height: '100%', fontSize: 15, color: '#1e293b', fontWeight: '500' }, // Dark text
+    input: { flex: 1, height: '100%', fontSize: 15, color: '#002045', fontWeight: '500' }, // Dark text
     eyeBtn: { padding: 6 },
     errorContainer: {
         backgroundColor: 'rgba(239, 68, 68, 0.05)',
@@ -296,12 +296,12 @@ const styles = StyleSheet.create({
     errorText: { color: '#ef4444', fontSize: 13, fontWeight: 'bold', textAlign: 'center' },
     button: { 
         height: 56, 
-        backgroundColor: '#4f46e5', 
+        backgroundColor: '#a14009', 
         borderRadius: 16, 
         alignItems: 'center', 
         justifyContent: 'center', 
         marginTop: 10, 
-        shadowColor: '#4f46e5', 
+        shadowColor: '#a14009', 
         shadowOffset: { width: 0, height: 10 }, 
         shadowOpacity: 0.2, 
         shadowRadius: 15, 
@@ -317,13 +317,13 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 16,
-        backgroundColor: '#f5f3ff',
+        backgroundColor: '#fff4ee',
         borderWidth: 1,
-        borderColor: '#ddd6fe',
+        borderColor: '#ffdbcd',
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 10,
-        shadowColor: '#4f46e5',
+        shadowColor: '#a14009',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.1,
         shadowRadius: 15,
@@ -333,12 +333,12 @@ const styles = StyleSheet.create({
     footerText: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold' },
     langSwitcherContainer: {
         alignSelf: 'center',
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#efedf1',
         borderRadius: 20,
         padding: 4,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: '#e3e2e6',
     },
     langBtn: {
         flexDirection: 'row',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
         color: '#64748b',
     },
     activeLangText: {
-        color: '#1e293b',
+        color: '#002045',
     },
 });
 

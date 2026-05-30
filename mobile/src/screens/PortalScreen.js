@@ -196,9 +196,9 @@ const PortalScreen = ({ onSelectMode, onLogout, userName, features, subscription
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
+    container: { flex: 1, backgroundColor: '#faf9fd' },
     headerBanner: {
-        backgroundColor: '#1e1b4b',
+        backgroundColor: '#002045',
         paddingBottom: 50,
         borderBottomLeftRadius: 32,
         borderBottomRightRadius: 32,
@@ -217,16 +217,16 @@ const styles = StyleSheet.create({
     dashboardWrapper: { paddingHorizontal: 20, marginTop: -30, marginBottom: 25 },
     dashboardCard: {
         backgroundColor: '#fff', borderRadius: 24, padding: 20,
-        shadowColor: '#1e1b4b', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 20,
-        elevation: 8, borderWidth: 1, borderColor: '#f1f5f9',
+        shadowColor: '#002045', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 20,
+        elevation: 8, borderWidth: 1, borderColor: '#e3e2e6',
     },
     dashboardTitle: { fontSize: 10, fontWeight: '900', color: '#94a3b8', letterSpacing: 1.5, marginBottom: 15 },
     metricsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     metricItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
     metricIconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-    metricValue: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+    metricValue: { fontSize: 16, fontWeight: 'bold', color: '#002045' },
     metricLabel: { fontSize: 11, color: '#64748b', fontWeight: '500', marginTop: 1 },
-    divider: { width: 1, height: 35, backgroundColor: '#e2e8f0', marginHorizontal: 15 },
+    divider: { width: 1, height: 35, backgroundColor: '#e3e2e6', marginHorizontal: 15 },
     content: { paddingHorizontal: 20, gap: 20, paddingBottom: 20 },
     sectionTitle: { fontSize: 11, fontWeight: '800', color: '#64748b', letterSpacing: 1.5, marginBottom: 5, paddingLeft: 4 },
     actionCard: {

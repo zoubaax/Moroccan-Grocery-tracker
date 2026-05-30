@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
-import { ChevronLeft, User, Phone, CheckCircle, CreditCard, Banknote, Landmark } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView, Image } from 'react-native';
+import { ChevronLeft, User, Phone, CheckCircle, CreditCard, Banknote, Landmark, ShoppingBag } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
 import { useLanguage } from '../services/LanguageContext';
@@ -110,8 +110,15 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
         const subtotal = item.product.price * item.quantity;
         return (
             <View style={[styles.itemCard, { flexDirection: flexDir }]}>
+                <View style={[styles.itemThumbWrap, isRTL ? { marginLeft: 12 } : { marginRight: 12 }]}>
+                    {item.product.imageUrl ? (
+                        <Image source={{ uri: item.product.imageUrl }} style={styles.productThumb} />
+                    ) : (
+                        <ShoppingBag size={22} color="#86a0cd" />
+                    )}
+                </View>
                 <View style={[styles.itemInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                    <Text style={styles.itemName}>{item.product.name}</Text>
+                    <Text style={styles.itemName} numberOfLines={1}>{item.product.name}</Text>
                     <Text style={styles.itemQty}>{item.quantity} x {item.product.price?.toFixed(2)} DH</Text>
                 </View>
                 <Text style={styles.itemSubtotal}>{subtotal.toFixed(2)} DH</Text>
@@ -122,7 +129,7 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
     if (isLoading) {
         return (
             <SafeAreaView style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color="#4f46e5" />
+                <ActivityIndicator size="large" color="#002045" />
                 <Text style={styles.loaderText}>
                     {language === 'fr' ? "Résolution du Code-barres Pania..." : "جاري فك رمز السلة..."}
                 </Text>
@@ -135,7 +142,7 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={[styles.backBtn, isRTL ? { transform: [{ rotate: '180deg' }] } : null]}>
-                    <ChevronLeft color="#1e293b" size={24} />
+                    <ChevronLeft color="#002045" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.title}>
                     {language === 'fr' ? "COMMANDE PANIA CLIENT" : "طلب السلة للزبون"}
@@ -148,7 +155,7 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
                     {/* Client Info Banner */}
                     <View style={[styles.clientBanner, { flexDirection: flexDir }]}>
                         <View style={styles.avatar}>
-                            <User color="#4f46e5" size={22} />
+                            <User color="#002045" size={22} />
                         </View>
                         <View style={[styles.clientInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }]}>
                             <Text style={styles.clientName}>{pantry.client.name}</Text>
@@ -195,15 +202,7 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
                                 </Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity 
-                                style={[styles.methodBtn, paymentMethod === 'CARD' ? styles.methodBtnActive : null]}
-                                onPress={() => setPaymentMethod('CARD')}
-                            >
-                                <CreditCard color={paymentMethod === 'CARD' ? '#fff' : '#64748b'} size={20} />
-                                <Text style={[styles.methodText, paymentMethod === 'CARD' ? styles.methodTextActive : null]}>
-                                    {t('cart.cardLabel')}
-                                </Text>
-                            </TouchableOpacity>
+
 
                             <TouchableOpacity 
                                 style={[styles.methodBtn, paymentMethod === 'CREDIT' ? styles.methodBtnActive : null]}
@@ -243,52 +242,54 @@ const PantryOrderScreen = ({ scannedToken, token, user, onComplete, onBack }) =>
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
+    container: { flex: 1, backgroundColor: '#faf9fd' },
 
     // Header
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0' },
-    title: { fontSize: 13, fontWeight: '800', color: '#0f172a', letterSpacing: 0.5 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e3e2e6' },
+    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#faf9fd', borderWidth: 1, borderColor: '#e3e2e6' },
+    title: { fontSize: 13, fontWeight: '800', color: '#002045', letterSpacing: 0.5 },
 
     // Loader
     loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14 },
-    loaderText: { fontSize: 13, fontWeight: '600', color: '#94a3b8' },
+    loaderText: { fontSize: 13, fontWeight: '600', color: '#74777f' },
 
     // Client banner
-    clientBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', margin: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#94a3b8', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1 },
-    avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#eef2ff', alignItems: 'center', justifyContent: 'center' },
+    clientBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', margin: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: '#e3e2e6', shadowColor: '#74777f', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1 },
+    avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#efedf1', alignItems: 'center', justifyContent: 'center' },
     clientInfo: { flex: 1 },
-    clientName: { fontSize: 15, fontWeight: '800', color: '#0f172a', marginBottom: 3 },
+    clientName: { fontSize: 15, fontWeight: '800', color: '#002045', marginBottom: 3 },
     phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     clientPhone: { fontSize: 12, color: '#64748b', fontWeight: '500' },
     balanceBox: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
     boxRed: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
     boxGreen: { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
-    balanceLabel: { fontSize: 8, fontWeight: '900', color: '#94a3b8', marginBottom: 2, letterSpacing: 0.5 },
+    balanceLabel: { fontSize: 8, fontWeight: '900', color: '#74777f', marginBottom: 2, letterSpacing: 0.5 },
     balanceValue: { fontSize: 13, fontWeight: '800' },
     valRed: { color: '#ef4444' },
     valGreen: { color: '#22c55e' },
 
     // List
     list: { paddingHorizontal: 14, paddingBottom: 20 },
-    listHeader: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' },
-    itemCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', padding: 13, borderRadius: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#94a3b8', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    listHeader: { fontSize: 10, fontWeight: '800', color: '#74777f', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' },
+    itemCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', padding: 13, borderRadius: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e3e2e6', shadowColor: '#74777f', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    itemThumbWrap: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#efedf1', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+    productThumb: { width: '100%', height: '100%', resizeMode: 'cover' },
     itemInfo: { flex: 1 },
-    itemName: { fontSize: 14, fontWeight: '700', color: '#0f172a', marginBottom: 3 },
-    itemQty: { fontSize: 12, color: '#94a3b8', fontWeight: '600' },
-    itemSubtotal: { fontSize: 14, fontWeight: '800', color: '#6366f1' },
+    itemName: { fontSize: 14, fontWeight: '700', color: '#002045', marginBottom: 3 },
+    itemQty: { fontSize: 12, color: '#74777f', fontWeight: '600' },
+    itemSubtotal: { fontSize: 14, fontWeight: '800', color: '#a14009' },
 
     // Footer
-    footer: { padding: 18, paddingBottom: 22, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', shadowColor: '#94a3b8', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 5 },
-    paymentHeader: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' },
+    footer: { padding: 18, paddingBottom: 22, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e3e2e6', shadowColor: '#74777f', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 5 },
+    paymentHeader: { fontSize: 10, fontWeight: '800', color: '#74777f', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' },
     paymentMethods: { flexDirection: 'row', gap: 8, marginBottom: 15 },
-    methodBtn: { flex: 1, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5, backgroundColor: '#f8fafc' },
-    methodBtnActive: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
-    methodText: { fontSize: 11, fontWeight: '700', color: '#94a3b8' },
+    methodBtn: { flex: 1, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#e3e2e6', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5, backgroundColor: '#faf9fd' },
+    methodBtnActive: { backgroundColor: '#a14009', borderColor: '#a14009' },
+    methodText: { fontSize: 11, fontWeight: '700', color: '#74777f' },
     methodTextActive: { color: '#fff' },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 14, marginBottom: 14 },
-    totalLabel: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
-    totalValue: { fontSize: 20, fontWeight: '900', color: '#6366f1' },
+    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#e3e2e6', paddingTop: 14, marginBottom: 14 },
+    totalLabel: { fontSize: 14, fontWeight: '700', color: '#002045' },
+    totalValue: { fontSize: 20, fontWeight: '900', color: '#a14009' },
     checkoutBtn: { backgroundColor: '#10b981', height: 52, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: '#10b981', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 12, elevation: 5 },
     checkoutBtnText: { color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 }
 });

@@ -147,16 +147,16 @@ const CustomerCreateScreen = ({ onBack, onSuccess, token, apiUrl }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, height: 60, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+    container: { flex: 1, backgroundColor: '#faf9fd' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, height: 60, borderBottomWidth: 1, borderBottomColor: '#e3e2e6' },
     backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    title: { fontSize: 13, fontWeight: 'bold', color: '#1e293b', letterSpacing: 1 },
+    title: { fontSize: 13, fontWeight: 'bold', color: '#002045', letterSpacing: 1 },
     form: { padding: 25 },
-    label: { fontSize: 12, fontWeight: 'bold', color: '#64748b', letterSpacing: 0.5, marginBottom: 8 },
-    inputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, paddingHorizontal: 15, height: 50 },
+    label: { fontSize: 12, fontWeight: 'bold', color: '#74777f', letterSpacing: 0.5, marginBottom: 8 },
+    inputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e3e2e6', borderRadius: 12, paddingHorizontal: 15, height: 50 },
     inputIcon: { marginRight: 10 },
-    input: { flex: 1, fontSize: 15, color: '#1e293b', fontWeight: '500' },
-    saveBtn: { marginTop: 40, height: 55, backgroundColor: '#4f46e5', borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: '#4f46e5', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
+    input: { flex: 1, fontSize: 15, color: '#002045', fontWeight: '500' },
+    saveBtn: { marginTop: 40, height: 55, backgroundColor: '#a14009', borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: '#a14009', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
     saveText: { color: '#fff', fontSize: 14, fontWeight: 'bold', letterSpacing: 0.5 },
     disabled: { opacity: 0.6 }
 });
