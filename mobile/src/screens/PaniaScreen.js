@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity,
-    FlatList, ActivityIndicator, Alert, Animated, Easing, Image
+    FlatList, ActivityIndicator, Alert, Animated, Easing, Image, SafeAreaView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ShoppingBag, Plus, Minus, Trash2, Barcode as BarcodeIcon, ArrowLeft, Tag } from 'lucide-react-native';
 import axios from 'axios';
 import { useLanguage } from '../services/LanguageContext';
@@ -154,7 +153,7 @@ const PaniaScreen = ({ user, apiUrl, onBack, onGoToBarcode }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity

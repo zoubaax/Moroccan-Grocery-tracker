@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, Alert, Image, ScrollView, Dimensions
+    ActivityIndicator, Alert, Image, ScrollView, Dimensions, SafeAreaView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Trash2, Plus, Minus, CheckCircle, ShoppingBag,
     Banknote, ChevronLeft, Users, BookOpen, ArrowLeft, X
@@ -133,7 +132,7 @@ const SalesCartScreen = ({ cart, onUpdateCart, onClear, token, user, onComplete,
     );
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity

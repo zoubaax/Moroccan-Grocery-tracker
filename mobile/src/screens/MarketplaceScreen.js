@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    FlatList, ActivityIndicator, Alert, Animated, Image, Easing, Dimensions, ScrollView
+    FlatList, ActivityIndicator, Alert, Animated, Image, Easing, Dimensions, ScrollView, SafeAreaView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, ShoppingBag, Plus, Minus, Tag, ChevronRight, Store, ArrowRight, X, ScanBarcode, ArrowLeft, XCircle } from 'lucide-react-native';
 import axios from 'axios';
 import { useLanguage } from '../services/LanguageContext';
@@ -228,7 +227,7 @@ const MarketplaceScreen = ({ user, apiUrl, onBack, onGoToPania }) => {
     });
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.container}>
             <View style={[styles.header, { flexDirection: flexDir }]}>
                 <TouchableOpacity onPress={onBack} style={styles.iconBtn} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
                     <ArrowLeft size={28} color="#002045" style={isRTL ? { transform: [{ scaleX: -1 }] } : null} />

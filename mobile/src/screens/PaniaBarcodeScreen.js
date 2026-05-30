@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity,
-    ActivityIndicator, Alert, Animated, Easing, ScrollView
+    ActivityIndicator, Alert, Animated, Easing, ScrollView, SafeAreaView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, RefreshCw, Clock, Info, CheckCircle2, QrCode } from 'lucide-react-native';
 import { Barcode } from 'expo-barcode-generator';
 import axios from 'axios';

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
 import { ChevronLeft, User, Phone, CheckCircle, CreditCard, Banknote, Landmark } from 'lucide-react-native';
 import axios from 'axios';
 import { generateAndShareReceipt } from '../services/ReceiptService';
