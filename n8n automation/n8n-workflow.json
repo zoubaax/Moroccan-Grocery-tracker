@@ -137,7 +137,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer YOUR_VAPI_PRIVATE_KEY_HERE"
+              "value": "Bearer YOUR_NEW_VAPI_PRIVATE_KEY_HERE"
             },
             {
               "name": "Content-Type",
@@ -147,7 +147,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"assistantId\": \"797c6f46-a25a-4eda-975a-1f964bf95b9b\",\n  \"phoneNumberId\": \"256e6079-b37f-47ad-8ea4-5e2366edd839\",\n  \"customer\": {\n    \"number\": \"+{{ $('Webhook (React Native Trigger)').item.json.body.clientPhone }}\",\n    \"name\": \"{{ $('Webhook (React Native Trigger)').item.json.body.clientName }}\"\n  },\n  \"assistantOverrides\": {\n    \"variableValues\": {\n      \"clientName\": \"{{ $('Webhook (React Native Trigger)').item.json.body.clientName }}\",\n      \"amount\": \"{{ $('Webhook (React Native Trigger)').item.json.body.amount }}\"\n    }\n  }\n}",
+        "jsonBody": "={\n  \"assistantId\": \"4d98ed3a-30ba-4f42-bfbb-5d926bbe4ca2\",\n  \"phoneNumberId\": \"c8ba9e36-87d1-402a-b1aa-3e481ea23f13\",\n  \"customer\": {\n    \"number\": \"+{{ $('Webhook (React Native Trigger)').item.json.body.clientPhone }}\",\n    \"name\": \"{{ $('Webhook (React Native Trigger)').item.json.body.clientName }}\"\n  },\n  \"assistantOverrides\": {\n    \"variableValues\": {\n      \"clientName\": \"{{ $('Webhook (React Native Trigger)').item.json.body.clientName }}\",\n      \"amount\": \"{{ $('Webhook (React Native Trigger)').item.json.body.amount }}\"\n    }\n  }\n}",
         "options": {}
       },
       "id": "f9e8d7c6-b5a4-3210-fedc-ba9876543210",
