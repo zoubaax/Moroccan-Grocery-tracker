@@ -22,6 +22,7 @@ TEST_ACCOUNTS.md
 *.iws
 *.iml
 *.ipr
+presentation/*.html
 
 ### NetBeans ###
 /nbproject/private/
@@ -43,3 +44,6 @@ build/
 TECH_STACK.md
 DIAGRAMS.md
 .docs
+7anoti_SaaS_Plan.md
+FEATURE_MARKETPLACE_PANTRY.md
+FEATURE_SUBSCRIPTIONS.md
